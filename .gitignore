@@ -9,7 +9,7 @@ venv/
 db.sqlite3
 
 # React
-node_modules/
+#node_modules/
 /frontend/build
 .DS_Store
 .env.local
