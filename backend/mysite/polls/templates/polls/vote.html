@@ -1,0 +1,26 @@
+<!-- polls/vote.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vote on Question</title>
+</head>
+<body>
+    <h1>{{ question.question_text }}</h1>
+    
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    
+    <form action="{% url 'polls:vote' question.id %}" method="post">
+        {% csrf_token %}
+        {% for choice in question.choice_set.all %}
+            <label>
+                <input type="radio" name="choice" value="{{ choice.id }}">
+                {{ choice.choice_text }}
+            </label><br>
+        {% endfor %}
+        <button type="submit">Vote</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!-- polls/results.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Results</title>
+</head>
+<body>
+    <h1>Results for "{{ question.question_text }}"</h1>
+    
+    <p>Thank you for participating! Here are the results:</p>
+    <!-- 投票結果の表示。例: 質問の選択肢とその投票数をリストとして表示 -->
+    {% if question.choice_set.all %}
+        <ul>
+            {% for choice in question.choice_set.all %}
+                <li>{{ choice.choice_text }}: {{ choice.votes }} votes</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No votes recorded yet.</p>
+    {% endif %}
+
+    <a href="{% url 'polls:index' %}">Back to Questions</a>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!-- polls/detail.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Question Detail</title>
+</head>
+<body>
+    <h1>{{ question.question_text }}</h1>
+    
+    {% if question.choice_set.all %}
+        <form action="{% url 'polls:vote' question.id %}" method="post">
+            {% csrf_token %}
+            {% for choice in question.choice_set.all %}
+                <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+                <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+            {% endfor %}
+            <button type="submit">Vote</button>
+        </form>
+    {% else %}
+        <p>No choices are available for this question.</p>
+    {% endif %}
+
+    <a href="{% url 'polls:index' %}">Back to Questions</a>
+</body>
+</html>
