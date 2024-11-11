@@ -1,0 +1,55 @@
+<form method="POST">
+    {% csrf_token %}
+    <label for="title">アンケートタイトル</label>
+    <input type="text" name="title" required>
+
+    <label for="question_count">質問数</label>
+    <input type="number" name="question_count" min="1" required>
+
+    <div id="questions-container"></div>
+
+    <button type="submit">アンケート作成</button>
+</form>
+
+<script>
+    document.querySelector('input[name="question_count"]').addEventListener('input', function() {
+        const questionCount = this.value;
+        const container = document.getElementById('questions-container');
+        container.innerHTML = '';
+        
+        for (let i = 0; i < questionCount; i++) {
+            const questionDiv = document.createElement('div');
+            questionDiv.innerHTML = `
+                <label for="question_${i}_text">質問内容</label>
+                <input type="text" name="question_${i}_text" required>
+
+                <label for="question_${i}_type">質問形式</label>
+                <select name="question_${i}_type">
+                    <option value="single_choice">単一選択</option>
+                    <option value="multiple_choice">複数選択</option>
+                </select>
+
+                <label for="question_${i}_choice_count">選択肢数</label>
+                <input type="number" name="question_${i}_choice_count" min="1" required>
+
+                <div id="choices_${i}"></div>
+            `;
+            container.appendChild(questionDiv);
+
+            document.querySelector(`input[name="question_${i}_choice_count"]`).addEventListener('input', function() {
+                const choiceCount = this.value;
+                const choicesContainer = document.getElementById(`choices_${i}`);
+                choicesContainer.innerHTML = '';
+                
+                for (let j = 0; j < choiceCount; j++) {
+                    const choiceDiv = document.createElement('div');
+                    choiceDiv.innerHTML = `
+                        <label for="question_${i}_choice_${j}">選択肢 ${j+1}</label>
+                        <input type="text" name="question_${i}_choice_${j}" required>
+                    `;
+                    choicesContainer.appendChild(choiceDiv);
+                }
+            });
+        }
+    });
+</script>
