@@ -1,25 +1,31 @@
-<!-- polls/results.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Results</title>
+    <title>投票結果</title>
 </head>
 <body>
-    <h1>Results for "{{ question.question_text }}"</h1>
-    
-    <p>Thank you for participating! Here are the results:</p>
-    <!-- 投票結果の表示。例: 質問の選択肢とその投票数をリストとして表示 -->
-    {% if question.choice_set.all %}
-        <ul>
-            {% for choice in question.choice_set.all %}
-                <li>{{ choice.choice_text }}: {{ choice.votes }} votes</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No votes recorded yet.</p>
-    {% endif %}
+    <h1>{{ question.question_text }}</h1>
 
-    <a href="{% url 'polls:index' %}">Back to Questions</a>
+    <ul>
+    {% for choice in question.choices.all %}
+        <li>{{ choice.choice_text }} -- {{ choice.votes }} 票</li>
+    {% endfor %}
+    </ul>
+
+    <a href="{% url 'polls:detail' question.id %}">もう一度投票する</a><br>
+    <a href="{% url 'polls:index' %}">ホームに戻る</a>
+
+    <!-- デバッグ情報 -->
+    <div style="margin-top: 20px; color: #666;">
+        <p>デバッグ情報:</p>
+        <p>質問ID: {{ question.id }}</p>
+        {% with total_votes=0 %}
+            {% for choice in question.choices.all %}
+                {% with total_votes=total_votes|add:choice.votes %}{% endwith %}
+            {% endfor %}
+            <p>総投票数: {{ total_votes }}</p>
+        {% endwith %}
+    </div>
 </body>
 </html>

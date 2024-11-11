@@ -1,4 +1,3 @@
-<<<<<<< HEAD:backend/mysite/mysite/urls.py
 """
 URL configuration for mysite project.
 
@@ -15,18 +14,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-=======
->>>>>>> db00ff0bc5049755fb37bb82f30de6c5a81376e0:backend/survey_project/urls.py
+
 from django.contrib import admin
 from django.urls import include, path
+from polls import views
 
 urlpatterns = [
-<<<<<<< HEAD:backend/mysite/mysite/urls.py
     path("polls/", include("polls.urls")),
     path("admin/", admin.site.urls),
+    path('', views.index),  # クラスを使用せず、直接関数を参照
 ]
-=======
-    path("survey_app/", include("survey_app.urls")),
-    path("admin/", admin.site.urls),
-]
->>>>>>> db00ff0bc5049755fb37bb82f30de6c5a81376e0:backend/survey_project/urls.py

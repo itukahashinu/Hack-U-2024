@@ -1,25 +1,46 @@
-<!-- polls/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Question List</title>
+    <title>投票一覧</title>
 </head>
 <body>
-    <h1>Latest Questions</h1>
+    <h1>投票一覧</h1>
     
     {% if latest_question_list %}
         <ul>
-            {% for question in latest_question_list %}
-                <li>
-                    <a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a>
-                </li>
-            {% endfor %}
+        {% for question in latest_question_list %}
+            <li>
+                <a href="{% url 'polls:detail' question.id %}">
+                    {{ question.question_text }}
+                    (選択肢: {{ question.choices.count }}個)
+                </a>
+            </li>
+        {% endfor %}
         </ul>
     {% else %}
-        <p>No questions are available.</p>
+        <p>投票はありません。</p>
     {% endif %}
 
-    <a href="{% url 'polls:index' %}">Home</a>
+    <!-- デバッグ情報 -->
+    <div style="margin-top: 20px; color: #666;">
+        <p>デバッグ情報(開発中のみ表示):</p>
+        <p>質問の総数: {{ latest_question_list|length }}</p>
+        <hr>
+        {% for question in latest_question_list %}
+            <div style="margin-left: 20px;">
+                <p>質問ID: {{ question.id }}</p>
+                <p>質問文: {{ question.question_text }}</p>
+                <p>選択肢数: {{ question.choices.count }}</p>
+                <p>選択肢一覧:</p>
+                <ul>
+                {% for choice in question.choices.all %}
+                    <li>{{ choice.choice_text }} ({{ choice.votes }}票)</li>
+                {% endfor %}
+                </ul>
+                <hr>
+            </div>
+        {% endfor %}
+    </div>
 </body>
 </html>
