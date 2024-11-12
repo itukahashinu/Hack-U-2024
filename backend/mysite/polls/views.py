@@ -1,6 +1,8 @@
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render
+from django.db import transaction
+from django.db.models import F
 from .models import Question, Choice , Survey
 from django.http import Http404
 from rest_framework import viewsets, status
@@ -8,8 +10,7 @@ from rest_framework.decorators import api_view,action,permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from .serializers import SurveySerializer , QuestionSerializer
-import requests
-import datetime
+import requests , datetime , json
 
 def create_google_form_mock(survey_data):
     """
@@ -410,3 +411,109 @@ def survey_detail_view(request, survey_id):
         })
     except Survey.DoesNotExist:
         raise Http404("アンケートが見つかりません")
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def submit_survey_response(request, survey_id):
+    """アンケート回答を送信するAPI"""
+    try:
+        with transaction.atomic():
+            # デバッグ出力
+            print(f"Processing survey response for survey_id: {survey_id}")
+            print(f"Request data: {request.data}")
+            
+            survey = Survey.objects.select_for_update().get(pk=survey_id)
+            print(f"Current responses before update: {survey.current_responses}")
+            
+            if survey.status != 'active':
+                return Response({
+                    'error': 'このアンケートは現在回答を受け付けていません。'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # 回答データを処理
+            answers_data = request.data.get('answers', [])
+            if not answers_data:
+                return Response({
+                    'error': '回答が選択されていません。'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # 各質問の回答を処理
+            for answer in answers_data:
+                question_id = answer.get('question_id')
+                choice_ids = answer.get('choice_ids', [])
+                print(f"Processing question {question_id} with choices {choice_ids}")
+                
+                try:
+                    question = survey.questions.get(id=question_id)
+                    for choice_id in choice_ids:
+                        choice = question.choices.select_for_update().get(id=choice_id)
+                        choice.votes = F('votes') + 1
+                        choice.save()
+                except Exception as e:
+                    print(f"Error processing question {question_id}: {str(e)}")
+                    continue
+
+            # current_responsesを更新
+            Survey.objects.filter(pk=survey_id).update(
+                current_responses=F('current_responses') + 1
+            )
+            
+            # 更新後のデータを再取得
+            survey.refresh_from_db()
+            print(f"Current responses after update: {survey.current_responses}")
+            
+            # 必要回答数に達した場合、ステータスを更新
+            if survey.current_responses >= survey.required_responses:
+                survey.status = 'completed'
+                survey.save()
+                print(f"Survey status updated to completed")
+            
+            return Response({
+                'message': '回答を受け付けました。ご協力ありがとうございます。',
+                'current_responses': survey.current_responses
+            })
+            
+    except Survey.DoesNotExist:
+        return Response({
+            'error': 'アンケートが見つかりません。'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        print(f"Error in submit_survey_response: {str(e)}")
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def survey_response_view(request, survey_id):
+    """アンケート回答ページを表示するビュー"""
+    survey = get_object_or_404(
+        Survey.objects.prefetch_related('questions__choices'),
+        pk=survey_id
+    )
+    
+    context = {
+        'survey': survey,
+        'error': None
+    }
+
+    # アンケートが回答可能な状態かチェック
+    if survey.status != 'active':
+        context['error'] = 'このアンケートは現在回答を受け付けていません。'
+    
+    # 質問とその選択肢をJavaScriptで使用できる形式に変換
+    questions_data = []
+    for question in survey.questions.all():
+        question_data = {
+            'id': question.id,
+            'text': question.question_text,
+            'type': question.question_type,
+            'choices': [
+                {'id': choice.id, 'text': choice.choice_text}
+                for choice in question.choices.all()
+            ]
+        }
+        questions_data.append(question_data)
+    
+    context['questions_json'] = json.dumps(questions_data)
+    
+    return render(request, 'polls/survey_response.html', context)

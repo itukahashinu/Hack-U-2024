@@ -20,9 +20,10 @@ from django.urls import include, path
 from polls import views
 
 urlpatterns = [
-    path("polls/", include("polls.urls")),
     path("admin/", admin.site.urls),
-    path('', views.index),  # クラスを使用せず、直接関数を参照
     path('api/debug/forms/', views.debug_forms, name='debug-forms'),
-    path('surveys/<int:survey_id>/', views.survey_detail_view, name='survey_detail'),
+    # ルートURLをpollsアプリのindexビューに直接マッピング
+    path('', views.index, name='index'),
+    # その他のすべてのURLパターンをpollsアプリで処理
+    path("", include("polls.urls")),
 ]
