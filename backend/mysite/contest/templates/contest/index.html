@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>アイデアコンテスト</title>
+</head>
+<body>
+    <h1>アイデアコンテストへようこそ！</h1>
+    <ul>
+        {% for theme in themes %}
+            <li>{{ theme.title }}: {{ theme.description }}</li>
+            <ul>
+                {% for idea in theme.idea_set.all %}
+                    <li>
+                        {{ idea.title }} by {{ idea.author.username }}
+                        <a href="{% url 'contest:like_idea' idea.id %}">
+                            いいね ({{ idea.likes.count }})
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    </ul>
+</body>
+</html> 

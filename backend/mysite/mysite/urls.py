@@ -16,14 +16,13 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import include, path
-from polls import views
+from django.urls import path, include
+
+
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path('api/debug/forms/', views.debug_forms, name='debug-forms'),
-    # ルートURLをpollsアプリのindexビューに直接マッピング
-    path('', views.index, name='index'),
-    # その他のすべてのURLパターンをpollsアプリで処理
-    path("", include("polls.urls")),
+    path('', include('entrance.urls')),
+    path('polls/', include('polls.urls')),
+    path('contest/', include('contest.urls')),
+    path('admin/', admin.site.urls),
 ]
