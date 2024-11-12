@@ -40,6 +40,9 @@ class Question(models.Model):
 
     def __str__(self):
         return self.question_text
+    
+    def get_choices(self):
+        return self.choices.all()
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choices')

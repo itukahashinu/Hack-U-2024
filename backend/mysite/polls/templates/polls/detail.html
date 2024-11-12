@@ -3,35 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <title>質問の詳細</title>
+    <style>
+        .vote-button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .vote-button:hover {
+            background-color: #45a049;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #666;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <h1>{{ question.question_text }}</h1>
     
-    {% if question.choices.all %}  <!-- choice_set から choices に変更 -->
+    {% if error_message %}
+        <p style="color: red;">{{ error_message }}</p>
+    {% endif %}
+    
+    {% if question.choices.all %}
         <form action="{% url 'polls:vote' question.id %}" method="post">
             {% csrf_token %}
-            {% for choice in question.choices.all %}  <!-- choice_set から choices に変更 -->
-                <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
-                <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+            {% for choice in question.choices.all %}
+                <div>
+                    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
+                    <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label>
+                </div>
             {% endfor %}
-            <button type="submit">投票する</button>
+            <button type="submit" class="vote-button">投票する</button>
         </form>
     {% else %}
         <p>この質問には選択肢がありません！</p>
     {% endif %}
 
-    <a href="{% url 'polls:index' %}">ホームに戻る</a>
+    <a href="{% url 'polls:index' %}" class="back-link">ホームに戻る</a>
 
-    <!-- デバッグ情報 -->
-    <div style="margin-top: 20px; color: #666;">
-        <p>デバッグ情報:</p>
-        <p>質問ID: {{ question.id }}</p>
-        <p>選択肢数: {{ question.choices.count }}</p>
-        <ul>
-        {% for choice in question.choices.all %}
-            <li>{{ choice.choice_text }}</li>
-        {% endfor %}
-        </ul>
-    </div>
+    <!-- デバッグ情報は以前と同じ -->
 </body>
 </html>

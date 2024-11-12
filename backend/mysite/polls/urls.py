@@ -20,4 +20,7 @@ urlpatterns = [
     # アンケート作成API
     path('api/create-survey/', views.create_survey, name='create-survey'),
     path('api/questions/<int:question_id>/', views.question_detail, name='question-detail'),
+    # アンケート一覧と詳細のエンドポイント
+    path('api/surveys/', views.survey_list, name='survey_list'),
+    path('api/surveys/<int:survey_id>/', views.survey_detail, name='survey_detail'),
 ]

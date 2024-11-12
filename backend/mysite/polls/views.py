@@ -4,29 +4,56 @@ from django.shortcuts import get_object_or_404, render
 from .models import Question, Choice , Survey
 from django.http import Http404
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view,action
+from rest_framework.decorators import api_view,action,permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from .serializers import SurveySerializer , QuestionSerializer
 import requests
-"""
-# Google Forms APIのモック関数
-def create_google_form_mock(survey_data):
-    
-    Google Forms APIのリクエストをモックする関数
-    実際のGoogle Forms APIのリクエストは行わず、仮のIDを返す
-    
-    # モックデータとして、成功したフォームIDを返す
-    print("Mocked create_google_form called with survey data:", survey_data)
-    
-    # モックされたフォームID
-    return "mock_form_id_12345"
+import datetime
 
-##########################
-"""
+def create_google_form_mock(survey_data):
+    """
+    Google Forms APIのモック関数
+    """
+    # 既存のデバッグ出力を強化
+    print("\n=== Google Form Creation Debug Log ===")
+    print("Timestamp:", datetime.datetime.now())
+    print("\nReceived Survey Data:")
+    print(f"Title: {survey_data.get('title', 'Untitled Survey')}")
+    print(f"Description: {survey_data.get('description', '')}")
+    
+    # 質問データの詳細なログ
+    if 'questions' in survey_data:
+        print("\nQuestions Details:")
+        for i, question in enumerate(survey_data['questions'], 1):
+            print(f"\nQuestion {i}:")
+            print(f"Text: {question.get('question_text', '')}")
+            print(f"Type: {question.get('question_type', '')}")
+            if 'choices' in question:
+                print("Choices:", [choice.get('choice_text', '') for choice in question['choices']])
+
+    mock_form_id = f"mock_form_{hash(str(survey_data))}"
+    print(f"\nGenerated Form ID: {mock_form_id}")
+    print("=== End of Debug Log ===\n")
+    
+    return mock_form_id
+
 def index(request):
-    latest_question_list = Question.objects.order_by('-created_at')[:5]
+    # Surveyモデルから全てのデータを取得（最新順）
+    surveys = Survey.objects.prefetch_related('questions__choices').order_by('-created_at')
+    
+    # デバッグ情報
+    print("\n=== Debug Information ===")
+    for survey in surveys:
+        print(f"\nSurvey ID: {survey.id}")
+        print(f"Title: {survey.title}")
+        print(f"Description: {survey.description}")
+        for question in survey.questions.all():
+            print(f"- Question: {question.question_text}")
+            print(f"  Choices: {[c.choice_text for c in question.choices.all()]}")
+
     return render(request, 'polls/index.html', {
-        'latest_question_list': latest_question_list,
+        'surveys': surveys,
     })
 
 def detail(request, question_id):
@@ -85,52 +112,57 @@ def vote(request, question_id):
 ###########################
 # Google Forms APIへのリクエストをモックした処理
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def create_survey(request):
-    """
-    アンケート作成用APIエンドポイント
-    フロントエンドから送られたアンケートデータを受け取り、モックされたGoogle Forms APIでフォームを作成
-    """
-    if request.method == 'POST':
-        serializer = SurveySerializer(data=request.data)
-        
-        if serializer.is_valid():
-            # バリデーションが成功した場合、Google Formを作成（モック）
-            survey_data = serializer.validated_data
+    # POSTメソッド以外の場合のエラーメッセージを追加
+    if request.method != 'POST':
+        return Response(
+            {"error": "GET method is not allowed for this endpoint. Please use POST."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+    
+    # POSTメソッドの場合の処理
+    serializer = SurveySerializer(data=request.data)
+    
+    if serializer.is_valid():
+        # バリデーションが成功した場合、Google Formを作成（モック）
+        survey_data = serializer.validated_data
 
-            # 質問データの構成を整える
-            questions_data = []
-            for question in survey_data['questions']:
-                if question['question_type'] in ['single_choice', 'multiple_choice']:
-                    choices = question['choices']
-                    question_data = {
-                        'question_text': question['question_text'],
-                        'question_type': question['question_type'],
-                        'choices': [{"choice_text": choice} for choice in choices],
-                    }
-                else:
-                    question_data = {
-                        'question_text': question['question_text'],
-                        'question_type': question['question_type'],
-                    }
-                questions_data.append(question_data)
-
-            survey_data['questions'] = questions_data
-
-            # Google Formをモックして作成
-            google_form_id = create_google_form_mock(survey_data)
-            
-            if google_form_id:
-                return Response({
-                    'message': 'Survey created successfully!',
-                    'google_form_id': google_form_id,  # モックされたGoogle FormのID
-                }, status=status.HTTP_201_CREATED)
+        # 以下は既存の質問データの構成整形などの処理
+        questions_data = []
+        for question in survey_data['questions']:
+            if question['question_type'] in ['single_choice', 'multiple_choice']:
+                choices = question['choices']
+                question_data = {
+                    'question_text': question['question_text'],
+                    'question_type': question['question_type'],
+                    'choices': [{"choice_text": choice} for choice in choices],
+                }
             else:
-                return Response({
-                    'message': 'Failed to create the survey form.'
-                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                question_data = {
+                    'question_text': question['question_text'],
+                    'question_type': question['question_type'],
+                }
+            questions_data.append(question_data)
+
+        survey_data['questions'] = questions_data
+
+        # Google Formをモックして作成
+        google_form_id = create_google_form_mock(survey_data)
+        
+        if google_form_id:
+            return Response({
+                'message': 'Survey created successfully!',
+                'google_form_id': google_form_id,  # モックされたGoogle FormのID
+            }, status=status.HTTP_201_CREATED)
         else:
-            # バリデーションエラーが発生した場合
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'message': 'Failed to create the survey form.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        # バリデーションエラーが発生した場合
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['GET'])
 def question_detail(request, question_id):
@@ -145,6 +177,7 @@ def question_detail(request, question_id):
 class SurveyViewSet(viewsets.ModelViewSet):
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
+    permission_classes = [AllowAny]
 
     @action(detail=True, methods=['post'])
     def create_google_form(self, request, pk=None):
@@ -228,3 +261,152 @@ class SurveyViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])  # この行を追加
+def debug_forms(request):
+    """デバッグ用：作成されたすべてのフォームを表示"""
+    try:
+        surveys = Survey.objects.all()
+        debug_info = []
+        
+        for survey in surveys:
+            form_info = {
+                'id': survey.id,
+                'title': survey.title,
+                'description': survey.description,
+                'google_form_id': survey.google_form_id,
+                'created_at': survey.created_at,
+                'status': survey.status,
+                'questions': []
+            }
+            
+            # 質問と選択肢の情報を追加
+            for question in survey.questions.all():
+                question_info = {
+                    'text': question.question_text,
+                    'type': question.question_type,
+                    'choices': []
+                }
+                
+                # 選択肢がある場合のみ追加
+                if question.question_type in ['single_choice', 'multiple_choice']:
+                    question_info['choices'] = [
+                        {
+                            'text': choice.choice_text,
+                            'votes': choice.votes
+                        } for choice in question.choices.all()
+                    ]
+                
+                form_info['questions'].append(question_info)
+            
+            debug_info.append(form_info)
+        
+        return Response({
+            'total_forms': len(debug_info),
+            'forms': debug_info,
+            'timestamp': datetime.datetime.now()
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': str(e),
+            'timestamp': datetime.datetime.now()
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# ... existing code ...
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def survey_list(request):
+    """アンケート一覧を取得するAPI"""
+    try:
+        surveys = Survey.objects.prefetch_related('questions').all()
+        surveys_data = []
+        
+        for survey in surveys:
+            survey_info = {
+                'id': survey.id,
+                'title': survey.title,
+                'description': survey.description,
+                'questions_count': survey.questions.count(),
+                'required_responses': survey.required_responses,
+                'current_responses': survey.current_responses,
+                'deadline': survey.deadline,
+                'status': survey.status,
+                'created_at': survey.created_at,
+                'is_entrance_survey': survey.is_entrance_survey,
+                # フロントエンド用のURLを追加
+                'detail_url': f'/surveys/{survey.id}/',  # フロントエンドのルート
+                # バックエンドAPIのURLを追加
+                'api_url': f'/api/surveys/{survey.id}/'
+            }
+            surveys_data.append(survey_info)
+        
+        return Response({
+            'surveys': surveys_data
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def survey_detail(request, survey_id):
+    """個別のアンケート詳細を取得するAPI"""
+    try:
+        survey = Survey.objects.prefetch_related('questions__choices').get(pk=survey_id)
+        
+        questions_data = []
+        for question in survey.questions.all():
+            question_data = {
+                'id': question.id,
+                'question_text': question.question_text,
+                'question_type': question.question_type,
+                'choices': []
+            }
+            
+            if question.question_type in ['single_choice', 'multiple_choice']:
+                question_data['choices'] = [{
+                    'id': choice.id,
+                    'choice_text': choice.choice_text,
+                    'votes': choice.votes
+                } for choice in question.choices.all()]
+            
+            questions_data.append(question_data)
+        
+        survey_data = {
+            'id': survey.id,
+            'title': survey.title,
+            'description': survey.description,
+            'required_responses': survey.required_responses,
+            'current_responses': survey.current_responses,
+            'deadline': survey.deadline,
+            'status': survey.status,
+            'created_at': survey.created_at,
+            'is_entrance_survey': survey.is_entrance_survey,
+            'questions': questions_data
+        }
+        
+        return Response(survey_data)
+        
+    except Survey.DoesNotExist:
+        return Response({
+            'error': 'Survey not found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def survey_detail_view(request, survey_id):
+    """アンケート詳細を表示するビュー"""
+    try:
+        survey = Survey.objects.prefetch_related('questions__choices').get(pk=survey_id)
+        return render(request, 'polls/survey_detail.html', {
+            'survey': survey
+        })
+    except Survey.DoesNotExist:
+        raise Http404("アンケートが見つかりません")

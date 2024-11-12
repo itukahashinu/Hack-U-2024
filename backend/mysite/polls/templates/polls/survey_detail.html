@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ survey.title }} - 詳細</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .back-button {
+            padding: 8px 16px;
+            background-color: #6c757d;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        .question-box {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .choice-list {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{% url 'polls:index' %}" class="back-button">戻る</a>
+        
+        <h1>{{ survey.title }}</h1>
+        <p>{{ survey.description }}</p>
+        
+        <h2>基本情報</h2>
+        <p>ステータス: {{ survey.status }}</p>
+        <p>必要回答数: {{ survey.required_responses }}</p>
+        <p>現在の回答数: {{ survey.current_responses }}</p>
+        <p>作成日時: {{ survey.created_at|date:"Y/m/d H:i" }}</p>
+        
+        <h2>質問一覧</h2>
+        {% for question in survey.questions.all %}
+            <div class="question-box">
+                <h3>{{ forloop.counter }}. {{ question.question_text }}</h3>
+                <p>質問タイプ: {{ question.question_type }}</p>
+                
+                {% if question.choices.all %}
+                    <div class="choice-list">
+                        <h4>選択肢:</h4>
+                        <ul>
+                            {% for choice in question.choices.all %}
+                                <li>{{ choice.choice_text }} ({{ choice.votes }}票)</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
