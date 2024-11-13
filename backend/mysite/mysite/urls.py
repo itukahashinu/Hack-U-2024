@@ -17,12 +17,28 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
+from django.shortcuts import redirect
+from django.contrib import messages
 
-
+class CustomLogoutView(auth_views.LogoutView):
+    def dispatch(self, request, *args, **kwargs):
+        if request.method == 'POST':
+            messages.success(request, 'ログアウトしました。')
+            response = super().dispatch(request, *args, **kwargs)
+            return response
+        return redirect('polls:index')
 
 urlpatterns = [
     path('', include('entrance.urls')),
     path('polls/', include('polls.urls')),
     path('contest/', include('contest.urls')),
     path('admin/', admin.site.urls),
+    path('login/', auth_views.LoginView.as_view(
+        template_name='registration/login.html',
+        redirect_authenticated_user=True
+    ), name='login'),
+    path('logout/', CustomLogoutView.as_view(
+        next_page=None,  # next パラメータを使用
+    ), name='logout'),
 ]

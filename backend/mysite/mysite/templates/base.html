@@ -106,10 +106,11 @@
         <a href="{% url 'polls:index' %}">アンケート</a>
         <a href="{% url 'contest:index' %}">アイデアコンテスト</a>
         {% if user.is_authenticated %}
-            <span style="color: white; float: right;">{{ user.username }} さん</span>
+            <span style="color: white; margin-right: 1rem;">{{ user.username }} さん</span>
+            <a href="{% url 'entrance:logout' %}" class="btn-primary btn" style="padding: 5px 10px;">ログアウト</a>
         {% else %}
-            <a href="{% url 'entrance:login' %}" style="float: right;">ログイン</a>
-        {% endif %}
+            <a href="{% url 'entrance:login' %}" class="btn-primary btn" style="padding: 5px 10px;">ログイン</a>
+            <a href="{% url 'entrance:signup' %}" class="btn-success btn" style="padding: 5px 10px;">新規登録</a>        {% endif %}
     </div>
 
     <!-- メインコンテンツ -->
@@ -118,20 +119,41 @@
     </div>
 
     <!-- デバッグ情報 -->
-    {% if debug %}
-    <div class="debug-info">
-        <h3>デバッグ情報</h3>
-        <p>URL: {{ request.path }}</p>
-        <p>ユーザー: {{ user }}</p>
-        <p>メソッド: {{ request.method }}</p>
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
-            {% endfor %}
-        </div>
-        {% endif %}
-    </div>
-    {% endif %}
+     {% if debug %}
+     <div class="container mt-3">
+         <div class="card bg-light">
+             <div class="card-header">
+                 <h4 class="card-title mb-0">🔍 デバッグ情報</h4>
+             </div>
+             <div class="card-body">
+                 <h5>ユーザー情報:</h5>
+                 <ul>
+                     <li>Is authenticated: {{ user.is_authenticated }}</li>
+                     <li>Username: {{ user.username }}</li>
+                     <li>User object: {{ user }}</li>
+                     <li>User ID: {{ user.id }}</li>
+                     <li>Is staff: {{ user.is_staff }}</li>
+                     <li>Is superuser: {{ user.is_superuser }}</li>
+                 </ul>
+ 
+                 <h5>リクエスト情報:</h5>
+                 <ul>
+                     <li>Current path: {{ request.path }}</li>
+                     <li>Method: {{ request.method }}</li>
+                     <li>Is AJAX: {{ request.is_ajax }}</li>
+                     <li>Is secure: {{ request.is_secure }}</li>
+                 </ul>
+ 
+                 <h5>その他の情報:</h5>
+                 <ul>
+                     <li>DEBUG mode: {{ debug }}</li>
+                     <li>STATIC_URL: {{ STATIC_URL }}</li>
+                     <li>MEDIA_URL: {{ MEDIA_URL }}</li>
+                 </ul>
+             </div>
+         </div>
+     </div>
+     {% endif %}
+ 
 </body>
 </html>

@@ -67,7 +67,7 @@ class ChoiceAdmin(admin.ModelAdmin):
     get_question_type.short_description = 'Question Type'
     get_question_type.admin_order_field = 'question__question_type'
 
-@admin.register(SurveyResponse)
+# admin.site.register(SurveyResponse) の代わりに
 class ResponseAdmin(admin.ModelAdmin):
     list_display = ('survey', 'created_at')
     list_filter = ['survey', 'created_at']
@@ -76,3 +76,12 @@ class ResponseAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False  # 管理画面からの手動追加を防止
+
+    class Meta:
+        managed = True
+        verbose_name = 'survey response'
+        verbose_name_plural = 'survey responses'
+
+# 管理画面に表示せずにモデルを登録
+admin.site.register(SurveyResponse, ResponseAdmin)
+admin.site.unregister(SurveyResponse)  # 管理画面から非表示にする

@@ -60,7 +60,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR
+            os.path.join(BASE_DIR, 'mysite', 'templates')# パスを修正
             ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -73,6 +73,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
@@ -140,3 +141,14 @@ REST_FRAMEWORK = {
 
 # 開発環境用のCORS設定
 CORS_ALLOW_ALL_ORIGINS = True  # 本番環境では具体的なオリジンを指定する
+
+# ユーザーがログインに成功したら、どのページに移動させるかを指定
+LOGIN_REDIRECT_URL = 'polls:index'  # アンケート一覧ページへ移動
+
+# ユーザーがログアウトしたら、どのページに移動させるかを指定
+LOGOUT_REDIRECT_URL = None  # next パラメータを使用するため None に設定
+
+# ログイン関連の設定
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'polls:index'
+LOGOUT_REDIRECT_URL = '/'

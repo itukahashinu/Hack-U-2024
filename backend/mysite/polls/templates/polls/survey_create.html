@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>新しいアンケートを作成</h1>
+
+    <form method="post" id="surveyForm" class="needs-validation" novalidate>
+        {% csrf_token %}
+        
+        <!-- アンケート基本情報 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0">基本情報</h2>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="title" class="form-label">タイトル <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">説明</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="start_date" class="form-label">開始日時 <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="end_date" class="form-label">終了日時 <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="required_responses" class="form-label">必要回答数</label>
+                            <input type="number" class="form-control" id="required_responses" name="required_responses" value="0" min="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 質問リスト -->
+        <div id="questions-container">
+            <!-- 質問テンプレート -->
+            <template id="question-template">
+                <div class="card mb-3 question-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="h6 mb-0">質問 <span class="question-number"></span></h3>
+                        <button type="button" class="btn btn-danger btn-sm remove-question">
+                            <i class="fas fa-trash"></i> 削除
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">質問文 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="questions[][text]" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">質問タイプ</label>
+                            <select class="form-select" name="questions[][type]">
+                                <option value="radio">単一選択（ラジオボタン）</option>
+                                <option value="checkbox">複数選択（チェックボックス）</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="questions[][required]" checked>
+                                <label class="form-check-label">必須回答</label>
+                            </div>
+                        </div>
+                        <div class="choices-container">
+                            <label class="form-label">選択肢</label>
+                            <div class="choices-list">
+                                <!-- 選択肢は動的に追加される -->
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2 add-choice">
+                                <i class="fas fa-plus"></i> 選択肢を追加
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <button type="button" class="btn btn-outline-primary mb-4" id="add-question">
+            <i class="fas fa-plus"></i> 質問を追加
+        </button>
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{% url 'polls:index' %}" class="btn btn-secondary me-md-2">キャンセル</a>
+            <button type="submit" class="btn btn-primary">アンケートを作成</button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const questionsContainer = document.getElementById('questions-container');
+    const questionTemplate = document.getElementById('question-template');
+    let questionCount = 0;
+
+    // 質問を追加
+    document.getElementById('add-question').addEventListener('click', function() {
+        const newQuestion = questionTemplate.content.cloneNode(true);
+        questionCount++;
+        
+        // 質問番号を更新
+        newQuestion.querySelector('.question-number').textContent = questionCount;
+        
+        // 最初の2つの選択肢を追加
+        const choicesList = newQuestion.querySelector('.choices-list');
+        addChoice(choicesList);
+        addChoice(choicesList);
+        
+        // 質問の削除ボタンの処理
+        newQuestion.querySelector('.remove-question').addEventListener('click', function(e) {
+            e.target.closest('.question-card').remove();
+            updateQuestionNumbers();
+        });
+        
+        // 選択肢追加ボタンの処理
+        newQuestion.querySelector('.add-choice').addEventListener('click', function(e) {
+            addChoice(e.target.previousElementSibling);
+        });
+        
+        questionsContainer.appendChild(newQuestion);
+    });
+
+    // 選択肢を追加する関数
+    function addChoice(choicesList) {
+        const choiceDiv = document.createElement('div');
+        choiceDiv.className = 'input-group mb-2';
+        choiceDiv.innerHTML = `
+            <input type="text" class="form-control" name="questions[][choices][]" placeholder="選択肢" required>
+            <button type="button" class="btn btn-outline-danger remove-choice">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        choiceDiv.querySelector('.remove-choice').addEventListener('click', function() {
+            if (choicesList.children.length > 2) {
+                choiceDiv.remove();
+            } else {
+                alert('最低2つの選択肢が必要です');
+            }
+        });
+        
+        choicesList.appendChild(choiceDiv);
+    }
+
+    // 質問番号を更新する関数
+    function updateQuestionNumbers() {
+        const questions = questionsContainer.querySelectorAll('.question-card');
+        questions.forEach((question, index) => {
+            question.querySelector('.question-number').textContent = index + 1;
+        });
+        questionCount = questions.length;
+    }
+
+    // フォームのバリデーション
+    document.getElementById('surveyForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 基本的なバリデーション
+        if (!this.checkValidity()) {
+            e.stopPropagation();
+            this.classList.add('was-validated');
+            return;
+        }
+        
+        // 質問が少なくとも1つあることを確認
+        if (questionCount === 0) {
+            alert('少なくとも1つの質問を追加してください');
+            return;
+        }
+        
+        // フォームを送信
+        this.submit();
+    });
+});
+</script>
+{% endblock %}

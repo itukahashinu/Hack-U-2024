@@ -28,4 +28,5 @@ urlpatterns = [
     path('surveys/<int:survey_id>/', views.survey_detail_view, name='survey_detail'),
     path('surveys/<int:survey_id>/response/', views.survey_response_view, name='survey_response'),
     path('api/surveys/<int:survey_id>/submit/', views.submit_survey_response, name='submit_survey_response'),
+    path('surveys/create/', views.survey_create_view, name='survey_create'),
 ]

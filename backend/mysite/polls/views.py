@@ -21,6 +21,9 @@ from .serializers import SurveySerializer, QuestionSerializer
 import requests, datetime, json
 import traceback
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+import re
 
 def create_google_form_mock(survey_data):
     """
@@ -50,7 +53,7 @@ def create_google_form_mock(survey_data):
     return mock_form_id
 
 def index(request):
-    # Surveyモデルから全てのデータを取得（最新順）
+        # Surveyモデルから全てのデータを取得（最新順）
     surveys = Survey.objects.prefetch_related('questions__choices').order_by('-created_at')
     
     # デバッグ情報
@@ -62,10 +65,17 @@ def index(request):
         for question in survey.questions.all():
             print(f"- Question: {question.question_text}")
             print(f"  Choices: {[c.choice_text for c in question.choices.all()]}")
-
+    surveys = Survey.objects.prefetch_related(
+        'questions__choices',
+        'responses__answers__selected_choices'
+    ).order_by('-created_at')
+    
     return render(request, 'polls/index.html', {
         'surveys': surveys,
+        'debug': settings.DEBUG,
+        'user': request.user,
     })
+    
 
 def detail(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
@@ -274,7 +284,7 @@ class SurveyViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
-@permission_classes([AllowAny])  # この行を追加
+@permission_classes([AllowAny])  # この行���追加
 def debug_forms(request):
     """デバッグ用：作成されたすべてのフォームを表示"""
     try:
@@ -597,3 +607,82 @@ def survey_response_view(request, survey_id):
     }
     
     return render(request, 'polls/survey_response.html', context)
+
+@login_required
+def survey_create_view(request):
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                # アンケートの基本情報を保存
+                survey = Survey.objects.create(
+                    title=request.POST['title'],
+                    description=request.POST['description'],
+                    start_date=request.POST['start_date'],
+                    end_date=request.POST['end_date'],
+                    required_responses=int(request.POST['required_responses']),
+                    status='draft'
+                )
+
+                # 質問と選択肢を保存
+                questions_data = parse_questions_data(request.POST)
+                for q_data in questions_data:
+                    question = Question.objects.create(
+                        survey=survey,
+                        question_text=q_data['text'],
+                        question_type=q_data['type'],
+                        is_required=q_data['required'],
+                        order=q_data['order']
+                    )
+                    
+                    # 選択肢を保存
+                    for i, choice_text in enumerate(q_data['choices']):
+                        Choice.objects.create(
+                            question=question,
+                            choice_text=choice_text,
+                            order=i
+                        )
+
+                messages.success(request, 'アンケートが作成されました。')
+                return redirect('polls:survey_detail', survey_id=survey.id)
+
+        except Exception as e:
+            messages.error(request, f'アンケートの作成中にエラーが発生しました: {str(e)}')
+            return redirect('polls:survey_create')
+
+    return render(request, 'polls/survey_create.html', {
+        'now': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+        'min_date': timezone.now().strftime('%Y-%m-%dT%H:%M'),
+    })
+
+def parse_questions_data(post_data):
+    """POSTデータから質問データを解析する"""
+    questions = []
+    current_question = None
+    
+    for key, value in post_data.items():
+        if key.startswith('questions['):
+            match = re.match(r'questions\[(\d+)\]\[(\w+)\](?:\[(\d+)\])?', key)
+            if match:
+                q_index, field, choice_index = match.groups()
+                q_index = int(q_index)
+                
+                # 新しい質問の開始
+                while len(questions) <= q_index:
+                    questions.append({
+                        'text': '',
+                        'type': 'radio',
+                        'required': False,
+                        'choices': [],
+                        'order': len(questions)
+                    })
+                
+                if field == 'text':
+                    questions[q_index]['text'] = value
+                elif field == 'type':
+                    questions[q_index]['type'] = value
+                elif field == 'required':
+                    questions[q_index]['required'] = value == 'on'
+                elif field == 'choices' and choice_index:
+                    questions[q_index]['choices'].append(value)
+    
+    return questions
