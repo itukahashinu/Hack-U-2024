@@ -1,187 +1,142 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ survey.title }} - 回答</title>
-    <style>
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .back-button {
-            display: inline-block;
-            padding: 8px 16px;
-            background-color: #6c757d;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-        .back-button:hover {
-            background-color: #5a6268;
-        }
-        .question {
-            margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #fff;
-        }
-        .question h3 {
-            margin-top: 0;
-            color: #333;
-        }
-        .choices {
-            margin-top: 15px;
-        }
-        .choice-item {
-            margin: 10px 0;
-            padding: 5px 0;
-        }
-        .choice-item label {
-            margin-left: 8px;
-            cursor: pointer;
-        }
-        .submit-button {
-            padding: 12px 24px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .submit-button:hover {
-            background-color: #0056b3;
-        }
-        .error-message {
-            color: #dc3545;
-            padding: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #dc3545;
-            border-radius: 4px;
-            background-color: #f8d7da;
-        }
-        .survey-info {
-            margin-bottom: 30px;
-        }
-        .required-message {
-            color: #dc3545;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- ホームページに戻るボタン -->
-        <a href="{% url 'polls:index' %}" class="back-button">ホームページに戻る</a>
+{% extends 'base.html' %}
 
-        <div class="survey-info">
-            <h1>{{ survey.title }}</h1>
-            <p>{{ survey.description }}</p>
+{% block content %}
+<div class="container mt-4">
+    <a href="{% url 'polls:survey_detail' survey.id %}" class="btn btn-secondary mb-3">戻る</a>
+
+    <h1>{{ survey.title }}</h1>
+    <p>{{ survey.description }}</p>
+
+    {% if messages %}
+    <div class="messages mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
         </div>
-
-        {% if error %}
-            <p class="error-message">{{ error }}</p>
-        {% else %}
-            <form id="survey-form">
-                {% for question in survey.questions.all %}
-                    <div class="question">
-                        <h3>{{ forloop.counter }}. {{ question.question_text }}</h3>
-                        
-                        <div class="choices">
-                            {% if question.question_type == 'single_choice' %}
-                                {% for choice in question.choices.all %}
-                                    <div class="choice-item">
-                                        <input type="radio" 
-                                               name="question_{{ question.id }}" 
-                                               id="choice_{{ choice.id }}"
-                                               value="{{ choice.id }}"
-                                               required>
-                                        <label for="choice_{{ choice.id }}">
-                                            {{ choice.choice_text }}
-                                        </label>
-                                    </div>
-                                {% endfor %}
-                                <p class="required-message">※この質問は必須です</p>
-                            {% elif question.question_type == 'multiple_choice' %}
-                                {% for choice in question.choices.all %}
-                                    <div class="choice-item">
-                                        <input type="checkbox" 
-                                               name="question_{{ question.id }}" 
-                                               id="choice_{{ choice.id }}"
-                                               value="{{ choice.id }}">
-                                        <label for="choice_{{ choice.id }}">
-                                            {{ choice.choice_text }}
-                                        </label>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-
-                <button type="submit" class="submit-button">回答を送信</button>
-            </form>
-        {% endif %}
+        {% endfor %}
     </div>
+    {% endif %}
 
-    <script>
-        // 質問データをテンプレートから直接取得
-        const questions = {{ questions_json|safe }};
+    <!-- 回答フォーム -->
+    <form method="post" id="surveyForm">
+        {% csrf_token %}
         
-        document.getElementById('survey-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const answers = [];
-            
-            // 各質問の回答を収集
-            questions.forEach(question => {
-                const inputs = document.getElementsByName(`question_${question.id}`);
-                const selectedChoices = Array.from(inputs)
-                    .filter(input => input.checked)
-                    .map(input => parseInt(input.value));
-                
-                if (selectedChoices.length > 0) {
-                    answers.push({
-                        question_id: question.id,
-                        choice_ids: selectedChoices
-                    });
-                }
-            });
-    
-            if (answers.length === 0) {
-                alert('少なくとも1つの質問に回答してください。');
-                return;
+        {% for question in survey.questions.all %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {{ question.question_text }}
+                    {% if question.is_required %}
+                    <span class="text-danger">*</span>
+                    {% endif %}
+                </h5>
+
+                {% if question.question_type == 'radio' %}
+                <div class="form-group">
+                    {% for choice in question.choices.all %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" 
+                               name="question_{{ question.id }}" 
+                               id="choice_{{ choice.id }}"
+                               value="{{ choice.id }}"
+                               {% if question.is_required %}required{% endif %}>
+                        <label class="form-check-label" for="choice_{{ choice.id }}">
+                            {{ choice.choice_text }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% elif question.question_type == 'checkbox' %}
+                <div class="form-group">
+                    {% for choice in question.choices.all %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" 
+                               name="question_{{ question.id }}" 
+                               id="choice_{{ choice.id }}"
+                               value="{{ choice.id }}">
+                        <label class="form-check-label" for="choice_{{ choice.id }}">
+                            {{ choice.choice_text }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">回答を送信</button>
+    </form>
+
+    <!-- デバッグ情報（開発環境のみ表示） -->
+    {% if debug %}
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h3 class="card-title mb-0">デバッグ情報</h3>
+        </div>
+        <div class="card-body">
+            <pre class="bg-light p-3">
+Form Data:
+Survey ID: {{ survey.id }}
+Questions:
+{% for question in survey.questions.all %}
+- Question ID: {{ question.id }}
+  Text: {{ question.question_text }}
+  Type: {{ question.question_type }}
+  Required: {{ question.is_required }}
+  Field name: question_{{ question.id }}
+  Choices:
+  {% for choice in question.choices.all %}
+    * Choice ID: {{ choice.id }}
+      Text: {{ choice.choice_text }}
+      Input ID: choice_{{ choice.id }}
+  {% endfor %}
+{% endfor %}
+
+Raw questions_json:
+{{ questions_json|safe }}
+            </pre>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+
+<script>
+document.getElementById('surveyForm').addEventListener('submit', function(e) {
+    const form = this;
+    const requiredQuestions = form.querySelectorAll('[required]');
+    let isValid = true;
+
+    // エラーメッセージをクリア
+    form.querySelectorAll('.error-message').forEach(el => el.remove());
+
+    requiredQuestions.forEach(function(input) {
+        const questionGroup = input.closest('.card-body');
+        const questionName = input.name;
+        const checkedInputs = form.querySelectorAll(`[name="${questionName}"]:checked`);
+
+        if (checkedInputs.length === 0) {
+            isValid = false;
+            if (!questionGroup.querySelector('.text-danger.error-message')) {
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'text-danger error-message mt-2';
+                errorMessage.textContent = 'この質問は必須です。';
+                questionGroup.appendChild(errorMessage);
             }
-    
-            try {
-                const response = await fetch(`/api/surveys/{{ survey.id }}/submit/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({ answers })
-                });
-    
-                const data = await response.json();
-                
-                if (response.ok) {
-                    alert(data.message);
-                    // 回答完了後、詳細ページにリダイレクト
-                    window.location.href = `/surveys/{{ survey.id }}/`;
-                } else {
-                    alert(data.error || '回答の送信に失敗しました。');
-                }
-            } catch (error) {
-                alert('エラーが発生しました。');
-                console.error(error);
-            }
-        });
-    </script>
-</body>
-</html>
+        }
+    });
+
+    if (!isValid) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

@@ -1,21 +1,30 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>ホームページ</title>
-</head>
-<body>
-    <h1>ようこそ！</h1>
-    <nav>
-        <ul>
-            <li><a href="{% url 'polls:index' %}">アンケート</a></li>
-            <li><a href="{% url 'contest:index' %}">アイデアコンテスト</a></li>
-            {% if user.is_authenticated %}
-                <li>こんにちは、{{ user.username }}さん</li>
-            {% else %}
-                <li><a href="{% url 'entrance:signup' %}">新規登録</a></li>
-                <li><a href="{% url 'entrance:login' %}">ログイン</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-</body>
-</html> 
+{% extends 'base.html' %}
+
+{% block title %}ホーム{% endblock %}
+
+{% block content %}
+<h1>ようこそ！</h1>
+
+<div class="app-links">
+    <div class="app-card">
+        <h2>アンケートアプリ</h2>
+        <p>様々なアンケートに回答できます。</p>
+        <a href="{% url 'polls:index' %}" class="btn btn-primary">アンケートへ</a>
+    </div>
+
+    <div class="app-card">
+        <h2>アイデアコンテスト</h2>
+        <p>月替わりのテーマに対してアイデアを投稿しよう！</p>
+        <a href="{% url 'contest:index' %}" class="btn btn-primary">コンテストへ</a>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+    <p>ログイン中: {{ user.username }}</p>
+{% else %}
+    <div class="auth-links">
+        <a href="{% url 'entrance:login' %}" class="btn btn-primary">ログイン</a>
+        <a href="{% url 'entrance:signup' %}" class="btn btn-success">新規登録</a>
+    </div>
+{% endif %}
+{% endblock %}

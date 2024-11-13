@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}開発サイト{% endblock %}</title>
+    <style>
+        /* 基本スタイル */
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        /* ナビゲーションバー */
+        .navbar {
+            background-color: #333;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            margin-right: 1rem;
+        }
+
+        .navbar a:hover {
+            background-color: #555;
+        }
+
+        /* デバッグ情報 */
+        .debug-info {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+        }
+
+        /* テーブルスタイル */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f5f5f5;
+        }
+
+        /* ボタンスタイル */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 4px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* base.htmlのstyleタグ内に追加 */
+        .app-links {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .app-card {
+            flex: 1;
+            padding: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .auth-links {
+            margin-top: 2rem;
+        }
+
+        .auth-links .btn {
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <div class="navbar">
+        <a href="{% url 'entrance:home' %}">ホーム</a>
+        <a href="{% url 'polls:index' %}">アンケート</a>
+        <a href="{% url 'contest:index' %}">アイデアコンテスト</a>
+        {% if user.is_authenticated %}
+            <span style="color: white; float: right;">{{ user.username }} さん</span>
+        {% else %}
+            <a href="{% url 'entrance:login' %}" style="float: right;">ログイン</a>
+        {% endif %}
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- デバッグ情報 -->
+    {% if debug %}
+    <div class="debug-info">
+        <h3>デバッグ情報</h3>
+        <p>URL: {{ request.path }}</p>
+        <p>ユーザー: {{ user }}</p>
+        <p>メソッド: {{ request.method }}</p>
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <p{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</body>
+</html>

@@ -1,112 +1,93 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ survey.title }} - 詳細</title>
-    <style>
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .back-button {
-            padding: 8px 16px;
-            background-color: #6c757d;
-            color: white;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        .back-button:hover {
-            background-color: #5a6268;
-        }
-        .question-box {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-        }
-        .choice-list {
-            margin-left: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <a href="{% url 'polls:index' %}" class="back-button">戻る</a>
-    
-        <h1>{{ survey.title }}</h1>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{% url 'polls:index' %}" class="btn btn-secondary mb-3">戻る</a>
+
+    <h1>{{ survey.title }}</h1>
     <p>{{ survey.description }}</p>
-    
-        <h2>基本情報</h2>
-        <div class="debug-info">
-            <p>ID: {{ survey.id }}</p>
+
+    <!-- 通常の表示 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="card-title h5 mb-0">基本情報</h2>
+        </div>
+        <div class="card-body">
             <p>ステータス: {{ survey.status }}</p>
             <p>必要回答数: {{ survey.required_responses }}</p>
             <p>現在の回答数: {{ survey.current_responses }}</p>
-            <p>作成日時: {{ survey.created_at|date:"Y/m/d H:i" }}</p>
-            <p>更新日時: {{ survey.updated_at|date:"Y/m/d H:i" }}</p>
-            <p>作成者: {{ survey.created_by }}</p>
+            
+            {% if survey.status == 'active' %}
+                <a href="{% url 'polls:survey_response' survey.id %}" class="btn btn-primary">
+                    このアンケートに回答する
+                </a>
+            {% else %}
+                <p class="alert alert-info">
+                    {% if survey.status == 'closed' %}
+                        このアンケートは終了しました
+                    {% else %}
+                        このアンケートはまだ開始されていません
+                    {% endif %}
+                </p>
+            {% endif %}
         </div>
-        
-        <!-- 回答ボタンを追加 -->
-        {% if survey.status == 'active' %}
-            <a href="{% url 'polls:survey_response' survey.id %}" class="response-button">
-                このアンケートに回答する
-            </a>
-        {% else %}
-            <p class="status-message">
-                {% if survey.status == 'completed' %}
-                    このアンケートは終了しました
-                {% else %}
-                    このアンケートはまだ開始されていません
-                {% endif %}
-            </p>
-        {% endif %}
+    </div>
 
-        <h2>質問一覧</h2>
-        {% for question in survey.questions.all %}
-            <div class="question-box">
-                <h3>{{ forloop.counter }}. {{ question.question_text }}</h3>
-                {% if question.choices.all %}
-                    <div class="choice-list">
-                        {% for choice in question.choices.all %}
-                            <p>・{{ choice.choice_text }} ({{ choice.votes }}票)</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        {% endfor %}
+    <!-- デバッグ情報（開発環境のみ表示） -->
+    {% if debug %}
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h3 class="card-title mb-0">デバッグ情報</h3>
+        </div>
+        <div class="card-body">
+            <pre class="bg-light p-3">
+Survey Details:
+ID: {{ survey.id }}
+Title: {{ survey.title }}
+Description: {{ survey.description }}
+Status: {{ survey.status }}
+Created at: {{ survey.created_at }}
+Start date: {{ survey.start_date }}
+End date: {{ survey.end_date }}
+Required responses: {{ survey.required_responses }}
+Current responses: {{ survey.current_responses }}
 
-    <style>
-        .response-button {
-            padding: 12px 24px;
-            background-color: #28a745;
-            color: white;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            margin: 20px 0;
-        }
-        .response-button:hover {
-            background-color: #218838;
-        }
-        .status-message {
-            color: #6c757d;
-            font-style: italic;
-            margin: 20px 0;
-        }
-        .debug-info {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            margin: 20px 0;
-        }
-        .debug-info p {
-            margin: 5px 0;
-            font-family: monospace;
-        }
-    </style>
-</body>
-</html>
+Questions:
+{% for question in survey.questions.all %}
+- Question ID: {{ question.id }}
+  Text: {{ question.question_text }}
+  Type: {{ question.question_type }}
+  Required: {{ question.is_required }}
+  Order: {{ question.order }}
+  Choices:
+  {% for choice in question.choices.all %}
+    * Choice ID: {{ choice.id }}
+      Text: {{ choice.choice_text }}
+      Votes: {{ choice.votes }}
+      Order: {{ choice.order }}
+  {% endfor %}
+{% endfor %}
+
+Recent Responses:
+{% for response in survey.responses.all|slice:":5" %}
+- Response ID: {{ response.id }}
+  Created at: {{ response.created_at }}
+  Answers:
+  {% for answer in response.answers.all %}
+    * Question: {{ answer.question.question_text }}
+      Selected choices: {% for choice in answer.selected_choices.all %}{{ choice.choice_text }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  {% endfor %}
+{% endfor %}
+            </pre>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+{% endblock %}

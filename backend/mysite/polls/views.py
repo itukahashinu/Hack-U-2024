@@ -1,16 +1,26 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404, JsonResponse
 from django.urls import reverse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction
 from django.db.models import F
-from .models import Question, Choice , Survey
-from django.http import Http404
+from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from rest_framework import viewsets, status
-from rest_framework.decorators import api_view,action,permission_classes
+from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
-from .serializers import SurveySerializer , QuestionSerializer
-import requests , datetime , json
+from .models import (
+    Question,
+    Choice,
+    Survey,
+    SurveyResponse,
+    Answer
+)
+from .serializers import SurveySerializer, QuestionSerializer
+import requests, datetime, json
+import traceback
+from django.conf import settings
 
 def create_google_form_mock(survey_data):
     """
@@ -403,117 +413,187 @@ def survey_detail(request, survey_id):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def survey_detail_view(request, survey_id):
-    """アンケート詳細を表示するビュー"""
-    try:
-        survey = Survey.objects.prefetch_related('questions__choices').get(pk=survey_id)
-        return render(request, 'polls/survey_detail.html', {
-            'survey': survey
-        })
-    except Survey.DoesNotExist:
-        raise Http404("アンケートが見つかりません")
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def submit_survey_response(request, survey_id):
-    """アンケート回答を送信するAPI"""
-    try:
-        with transaction.atomic():
-            # デバッグ出力
-            print(f"Processing survey response for survey_id: {survey_id}")
-            print(f"Request data: {request.data}")
-            
-            survey = Survey.objects.select_for_update().get(pk=survey_id)
-            print(f"Current responses before update: {survey.current_responses}")
-            
-            if survey.status != 'active':
-                return Response({
-                    'error': 'このアンケートは現在回答を受け付けていません。'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # 回答データを処理
-            answers_data = request.data.get('answers', [])
-            if not answers_data:
-                return Response({
-                    'error': '回答が選択されていません。'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # 各質問の回答を処理
-            for answer in answers_data:
-                question_id = answer.get('question_id')
-                choice_ids = answer.get('choice_ids', [])
-                print(f"Processing question {question_id} with choices {choice_ids}")
-                
-                try:
-                    question = survey.questions.get(id=question_id)
-                    for choice_id in choice_ids:
-                        choice = question.choices.select_for_update().get(id=choice_id)
-                        choice.votes = F('votes') + 1
-                        choice.save()
-                except Exception as e:
-                    print(f"Error processing question {question_id}: {str(e)}")
-                    continue
-
-            # current_responsesを更新
-            Survey.objects.filter(pk=survey_id).update(
-                current_responses=F('current_responses') + 1
-            )
-            
-            # 更新後のデータを再取得
-            survey.refresh_from_db()
-            print(f"Current responses after update: {survey.current_responses}")
-            
-            # 必要回答数に達した場合、ステータスを更新
-            if survey.current_responses >= survey.required_responses:
-                survey.status = 'completed'
-                survey.save()
-                print(f"Survey status updated to completed")
-            
-            return Response({
-                'message': '回答を受け付けました。ご協力ありがとうございます。',
-                'current_responses': survey.current_responses
-            })
-            
-    except Survey.DoesNotExist:
-        return Response({
-            'error': 'アンケートが見つかりません。'
-        }, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        print(f"Error in submit_survey_response: {str(e)}")
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    survey = get_object_or_404(
+        Survey.objects.prefetch_related(
+            'questions__choices',
+            'responses__answers__selected_choices'
+        ),
+        pk=survey_id
+    )
+    
+    # デバッグ情報をコンソールに出力
+    if settings.DEBUG:
+        print("\n=== Survey Detail Debug Information ===")
+        print(f"Survey ID: {survey.id}")
+        print(f"Title: {survey.title}")
+        print(f"Status: {survey.status}")
+        print(f"Total responses: {survey.responses.count()}")
+        print("\nQuestions:")
+        for question in survey.questions.all():
+            print(f"- {question.question_text}")
+            print(f"  Type: {question.question_type}")
+            print(f"  Choices: {[c.choice_text for c in question.choices.all()]}")
+    
+    return render(request, 'polls/survey_detail.html', {
+        'survey': survey,
+        'debug': settings.DEBUG
+    })
 
 def survey_response_view(request, survey_id):
-    """アンケート回答ページを表示するビュー"""
     survey = get_object_or_404(
         Survey.objects.prefetch_related('questions__choices'),
         pk=survey_id
     )
     
+    # デバッグ情報をコンソールに出力
+    if settings.DEBUG:
+        print("\n=== Survey Response Debug Information ===")
+        print(f"Survey ID: {survey.id}")
+        print(f"Request method: {request.method}")
+        if request.method == 'POST':
+            print("\nPOST data:")
+            for key, value in request.POST.items():
+                print(f"- {key}: {value}")
+    
+    # ... 既存のコード ...
+    
     context = {
         'survey': survey,
-        'error': None
+        'questions_json': json.dumps([{
+            'id': q.id,
+            'text': q.question_text,
+            'type': q.question_type,
+            'is_required': q.is_required,
+            'choices': [{
+                'id': c.id,
+                'text': c.choice_text
+            } for c in q.choices.all()]
+        } for q in survey.questions.all()]),
+        'debug': settings.DEBUG
     }
+    
+    return render(request, 'polls/survey_response.html', context)
 
-    # アンケートが回答可能な状態かチェック
-    if survey.status != 'active':
-        context['error'] = 'このアンケートは現在回答を受け付けていません。'
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def submit_survey_response(request, survey_id):
+    """アンケート回答を送信するAPI"""
+    try:
+        with transaction.atomic():
+            # リクエストボディをJSONとしてパース
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({
+                    'error': '無効なJSONフォーマットです。'
+                }, status=400)
+
+            # デバッグ出力
+            print(f"Received response data for survey {survey_id}:")
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+
+            # アンケートの取得
+            survey = get_object_or_404(Survey, pk=survey_id)
+            
+            # アンケートのステータスチェック
+            if survey.status != 'active':
+                return JsonResponse({
+                    'error': 'このアンケートは現在回答を受け付けていません。'
+                }, status=400)
+
+            # 回答データの検証
+            answers = data.get('answers', [])
+            if not answers:
+                return JsonResponse({
+                    'error': '回答が選択されていません。'
+                }, status=400)
+
+            # 必須回答のチェック
+            required_questions = survey.questions.filter(is_required=True).values_list('id', flat=True)
+            answered_questions = {answer['question_id'] for answer in answers}
+            missing_required = set(required_questions) - answered_questions
+            
+            if missing_required:
+                return JsonResponse({
+                    'error': '必須の質問に回答してください。',
+                    'missing_questions': list(missing_required)
+                }, status=400)
+
+            # 回答を保存
+            response = Response.objects.create(survey=survey)
+            
+            for answer_data in answers:
+                question_id = answer_data['question_id']
+                choice_ids = answer_data.get('choice_ids', [])
+                
+                question = survey.questions.get(id=question_id)
+                answer = Answer.objects.create(
+                    response=response,
+                    question=question
+                )
+                
+                # 選択肢の保存と投票数の更新
+                for choice_id in choice_ids:
+                    choice = Choice.objects.select_for_update().get(
+                        id=choice_id,
+                        question=question
+                    )
+                    choice.votes = F('votes') + 1
+                    choice.save()
+                    answer.selected_choices.add(choice)
+
+            # 回答数を更新
+            survey.current_responses = F('current_responses') + 1
+            survey.save()
+
+            # 必要回答数に達したかチェック
+            survey.refresh_from_db()
+            if survey.current_responses >= survey.required_responses:
+                survey.status = 'closed'
+                survey.save()
+
+            return JsonResponse({
+                'message': '回答を受け付けました。ご協力ありがとうございます。',
+                'response_id': response.id
+            })
+
+    except Exception as e:
+        print(f"Error processing survey response: {str(e)}")
+        return JsonResponse({
+            'error': '回答の処理中にエラーが発生しました。'
+        }, status=500)
+
+def survey_response_view(request, survey_id):
+    survey = get_object_or_404(
+        Survey.objects.prefetch_related('questions__choices'),
+        pk=survey_id
+    )
     
-    # 質問とその選択肢をJavaScriptで使用できる形式に変換
-    questions_data = []
-    for question in survey.questions.all():
-        question_data = {
-            'id': question.id,
-            'text': question.question_text,
-            'type': question.question_type,
-            'choices': [
-                {'id': choice.id, 'text': choice.choice_text}
-                for choice in question.choices.all()
-            ]
-        }
-        questions_data.append(question_data)
+    # デバッグ情報をコンソールに出力
+    if settings.DEBUG:
+        print("\n=== Survey Response Debug Information ===")
+        print(f"Survey ID: {survey.id}")
+        print(f"Request method: {request.method}")
+        if request.method == 'POST':
+            print("\nPOST data:")
+            for key, value in request.POST.items():
+                print(f"- {key}: {value}")
     
-    context['questions_json'] = json.dumps(questions_data)
+    # GETリクエストまたはエラー時の処理
+    context = {
+        'survey': survey,
+        'questions_json': json.dumps([{
+            'id': q.id,
+            'text': q.question_text,
+            'type': q.question_type,
+            'is_required': q.is_required,
+            'choices': [{
+                'id': c.id,
+                'text': c.choice_text
+            } for c in q.choices.all()]
+        } for q in survey.questions.all()]),
+        'debug': settings.DEBUG
+    }
     
     return render(request, 'polls/survey_response.html', context)

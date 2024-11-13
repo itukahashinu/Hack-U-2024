@@ -1,24 +1,44 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>アイデアコンテスト</title>
-</head>
-<body>
-    <h1>アイデアコンテストへようこそ！</h1>
-    <ul>
-        {% for theme in themes %}
-            <li>{{ theme.title }}: {{ theme.description }}</li>
-            <ul>
-                {% for idea in theme.idea_set.all %}
-                    <li>
-                        {{ idea.title }} by {{ idea.author.username }}
-                        <a href="{% url 'contest:like_idea' idea.id %}">
-                            いいね ({{ idea.likes.count }})
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endfor %}
-    </ul>
-</body>
-</html> 
+{% extends 'base.html' %}
+
+{% block title %}アイデアコンテスト{% endblock %}
+
+{% block content %}
+<h1>アイデアコンテストへようこそ！</h1>
+
+{% for theme in themes %}
+    <div class="theme-card">
+        <h2>{{ theme.title }}</h2>
+        <p>{{ theme.description }}</p>
+        
+        <h3>投稿されたアイデア</h3>
+        {% if theme.idea_set.all %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>タイトル</th>
+                        <th>投稿者</th>
+                        <th>いいね数</th>
+                        <th>アクション</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for idea in theme.idea_set.all %}
+                        <tr>
+                            <td>{{ idea.title }}</td>
+                            <td>{{ idea.author.username }}</td>
+                            <td>{{ idea.likes.count }}</td>
+                            <td>
+                                <a href="{% url 'contest:like_idea' idea.id %}" class="btn btn-primary">
+                                    いいね ({{ idea.likes.count }})
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>まだアイデアの投稿はありません。</p>
+        {% endif %}
+    </div>
+{% endfor %}
+{% endblock %}

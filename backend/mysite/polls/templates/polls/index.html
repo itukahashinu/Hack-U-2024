@@ -1,57 +1,22 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>アンケート一覧</title>
-    <style>
-        a {
-            color: blue;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f5f5f5;
-        }
-        .detail-button {
-            padding: 8px 16px;
-            background-color: #007bff;
-            color: white;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .detail-button:hover {
-            background-color: #0056b3;
-        }
-        .create-button {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-        .create-button:hover {
-            background-color: #218838;
-        }
-    </style>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
     <h1>アンケート一覧</h1>
-    
-    <a href="{% url 'polls:create-survey' %}" class="create-button">新しいアンケートを作成</a>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     {% if surveys %}
-        <table>
+        <!-- 通常の表示 -->
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>タイトル</th>
@@ -73,7 +38,7 @@
                         <td>{{ survey.status }}</td>
                         <td>{{ survey.created_at|date:"Y/m/d H:i" }}</td>
                         <td>
-                            <a href="{% url 'polls:survey_detail' survey.id %}" class="detail-button">
+                            <a href="{% url 'polls:survey_detail' survey.id %}" class="btn btn-primary btn-sm">
                                 詳細を見る
                             </a>
                         </td>
@@ -81,8 +46,78 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- デバッグ情報（開発環境のみ表示） -->
+        {% if debug %}
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h3 class="card-title mb-0">デバッグ情報</h3>
+            </div>
+            <div class="card-body">
+                {% for survey in surveys %}
+                <div class="debug-survey mb-4">
+                    <h4>アンケート ID: {{ survey.id }}</h4>
+                    <div class="debug-info">
+                        <pre class="bg-light p-3">
+Title: {{ survey.title }}
+Description: {{ survey.description }}
+Status: {{ survey.status }}
+Created at: {{ survey.created_at }}
+Start date: {{ survey.start_date }}
+End date: {{ survey.end_date }}
+Required responses: {{ survey.required_responses }}
+Current responses: {{ survey.current_responses }}
+
+Questions:
+{% for question in survey.questions.all %}
+  - Question ID: {{ question.id }}
+    Text: {{ question.question_text }}
+    Type: {{ question.question_type }}
+    Required: {{ question.is_required }}
+    Order: {{ question.order }}
+    Choices:
+    {% for choice in question.choices.all %}
+      * Choice ID: {{ choice.id }}
+        Text: {{ choice.choice_text }}
+        Votes: {{ choice.votes }}
+        Order: {{ choice.order }}
+    {% endfor %}
+{% endfor %}
+
+Responses:
+{% for response in survey.responses.all %}
+  - Response ID: {{ response.id }}
+    Created at: {{ response.created_at }}
+    Answers:
+    {% for answer in response.answers.all %}
+      * Question: {{ answer.question.question_text }}
+        Selected choices: {% for choice in answer.selected_choices.all %}{{ choice.choice_text }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    {% endfor %}
+{% endfor %}
+                        </pre>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     {% else %}
-        <p>アンケートはありません。</p>
+        <p class="alert alert-info">アンケートはありません。</p>
     {% endif %}
-</body>
-</html>
+</div>
+
+<style>
+    .debug-info {
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    .debug-survey {
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 1rem;
+    }
+    .debug-survey:last-child {
+        border-bottom: none;
+    }
+</style>
+{% endblock %}
