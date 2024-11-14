@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, action, permission_classes
-from rest_framework.response import Response
+from rest_framework.response import Response as DRFResponse #DjangoFrameworkResponse
 from rest_framework.permissions import AllowAny
 from .models import (
     Question,
@@ -137,7 +137,7 @@ def vote(request, question_id):
 def create_survey(request):
     # POSTメソッド以外の場合のエラーメッセージを追加
     if request.method != 'POST':
-        return Response(
+        return DRFResponse(
             {"error": "GET method is not allowed for this endpoint. Please use POST."},
             status=status.HTTP_405_METHOD_NOT_ALLOWED
         )
@@ -172,17 +172,17 @@ def create_survey(request):
         google_form_id = create_google_form_mock(survey_data)
         
         if google_form_id:
-            return Response({
+            return DRFResponse({
                 'message': 'Survey created successfully!',
                 'google_form_id': google_form_id,  # モックされたGoogle FormのID
             }, status=status.HTTP_201_CREATED)
         else:
-            return Response({
+            return DRFResponse({
                 'message': 'Failed to create the survey form.'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         # バリデーションエラーが発生した場合
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return DRFResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -190,10 +190,10 @@ def question_detail(request, question_id):
     try:
         question = Question.objects.get(pk=question_id)
     except Question.DoesNotExist:
-        return Response({'error': 'Question not found'}, status=404)
+        return DRFResponse({'error': 'Question not found'}, status=404)
 
     serializer = QuestionSerializer(question)
-    return Response(serializer.data)
+    return DRFResponse(serializer.data)
 
 class SurveyViewSet(viewsets.ModelViewSet):
     queryset = Survey.objects.all()
@@ -209,12 +209,12 @@ class SurveyViewSet(viewsets.ModelViewSet):
             form_id = create_google_form_mock(survey)
             survey.google_form_id = form_id
             survey.save()
-            return Response({
+            return DRFResponse({
                 'message': 'Google Form created successfully',
                 'form_id': form_id
             })
         except Exception as e:
-            return Response({
+            return DRFResponse({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -226,11 +226,11 @@ class SurveyViewSet(viewsets.ModelViewSet):
             # 回答データを処理
             survey.current_responses += 1
             survey.save()
-            return Response({
+            return DRFResponse({
                 'message': 'Response submitted successfully'
             })
         except Exception as e:
-            return Response({
+            return DRFResponse({
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -245,14 +245,14 @@ class SurveyViewSet(viewsets.ModelViewSet):
             ).order_by('?').first()
             
             if not entrance_survey:
-                return Response({
+                return DRFResponse({
                     'message': 'No entrance surveys available'
                 }, status=status.HTTP_404_NOT_FOUND)
                 
             serializer = self.get_serializer(entrance_survey)
-            return Response(serializer.data)
+            return DRFResponse(serializer.data)
         except Exception as e:
-            return Response({
+            return DRFResponse({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -277,9 +277,9 @@ class SurveyViewSet(viewsets.ModelViewSet):
                 }
                 results['questions'].append(question_data)
                 
-            return Response(results)
+            return DRFResponse(results)
         except Exception as e:
-            return Response({
+            return DRFResponse({
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -323,14 +323,14 @@ def debug_forms(request):
             
             debug_info.append(form_info)
         
-        return Response({
+        return DRFResponse({
             'total_forms': len(debug_info),
             'forms': debug_info,
             'timestamp': datetime.datetime.now()
         })
         
     except Exception as e:
-        return Response({
+        return DRFResponse({
             'error': str(e),
             'timestamp': datetime.datetime.now()
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -364,19 +364,33 @@ def survey_list(request):
             }
             surveys_data.append(survey_info)
         
-        return Response({
+        return DRFResponse({
             'surveys': surveys_data
         })
         
     except Exception as e:
-        return Response({
+        return DRFResponse({
             'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+def survey_detail_view(request, survey_id):
+    """HTMLテンプレートを返すビュー"""
+    survey = get_object_or_404(
+        Survey.objects.prefetch_related('questions__choices'),
+        pk=survey_id
+    )
+    
+    context = {
+        'survey': survey,
+        'debug': settings.DEBUG
+    }
+    
+    return render(request, 'polls/survey_detail.html', context)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def survey_detail(request, survey_id):
-    """個別のアンケート詳細を取得するAPI"""
+    """APIビュー"""
     try:
         survey = Survey.objects.prefetch_related('questions__choices').get(pk=survey_id)
         
@@ -411,43 +425,12 @@ def survey_detail(request, survey_id):
             'questions': questions_data
         }
         
-        return Response(survey_data)
+        return DRFResponse(survey_data)
         
     except Survey.DoesNotExist:
-        return Response({
+        return DRFResponse({
             'error': 'Survey not found'
         }, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-def survey_detail_view(request, survey_id):
-    survey = get_object_or_404(
-        Survey.objects.prefetch_related(
-            'questions__choices',
-            'responses__answers__selected_choices'
-        ),
-        pk=survey_id
-    )
-    
-    # デバッグ情報をコンソールに出力
-    if settings.DEBUG:
-        print("\n=== Survey Detail Debug Information ===")
-        print(f"Survey ID: {survey.id}")
-        print(f"Title: {survey.title}")
-        print(f"Status: {survey.status}")
-        print(f"Total responses: {survey.responses.count()}")
-        print("\nQuestions:")
-        for question in survey.questions.all():
-            print(f"- {question.question_text}")
-            print(f"  Type: {question.question_type}")
-            print(f"  Choices: {[c.choice_text for c in question.choices.all()]}")
-    
-    return render(request, 'polls/survey_detail.html', {
-        'survey': survey,
-        'debug': settings.DEBUG
-    })
 
 def survey_response_view(request, survey_id):
     survey = get_object_or_404(
@@ -465,8 +448,7 @@ def survey_response_view(request, survey_id):
             for key, value in request.POST.items():
                 print(f"- {key}: {value}")
     
-    # ... 既存のコード ...
-    
+    # GETリクエストまたはエラー時の処理
     context = {
         'survey': survey,
         'questions_json': json.dumps([{
@@ -531,7 +513,7 @@ def submit_survey_response(request, survey_id):
                 }, status=400)
 
             # 回答を保存
-            response = Response.objects.create(survey=survey)
+            response = SurveyResponse.objects.create(survey=survey)
             
             for answer_data in answers:
                 question_id = answer_data['question_id']
@@ -573,40 +555,6 @@ def submit_survey_response(request, survey_id):
         return JsonResponse({
             'error': '回答の処理中にエラーが発生しました。'
         }, status=500)
-
-def survey_response_view(request, survey_id):
-    survey = get_object_or_404(
-        Survey.objects.prefetch_related('questions__choices'),
-        pk=survey_id
-    )
-    
-    # デバッグ情報をコンソールに出力
-    if settings.DEBUG:
-        print("\n=== Survey Response Debug Information ===")
-        print(f"Survey ID: {survey.id}")
-        print(f"Request method: {request.method}")
-        if request.method == 'POST':
-            print("\nPOST data:")
-            for key, value in request.POST.items():
-                print(f"- {key}: {value}")
-    
-    # GETリクエストまたはエラー時の処理
-    context = {
-        'survey': survey,
-        'questions_json': json.dumps([{
-            'id': q.id,
-            'text': q.question_text,
-            'type': q.question_type,
-            'is_required': q.is_required,
-            'choices': [{
-                'id': c.id,
-                'text': c.choice_text
-            } for c in q.choices.all()]
-        } for q in survey.questions.all()]),
-        'debug': settings.DEBUG
-    }
-    
-    return render(request, 'polls/survey_response.html', context)
 
 @login_required
 def survey_create_view(request):

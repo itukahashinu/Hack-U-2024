@@ -2,7 +2,15 @@
 
 {% block content %}
 <div class="container mt-4">
-    <a href="{% url 'polls:index' %}" class="btn btn-secondary mb-3">戻る</a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'polls:index' %}" class="btn btn-secondary">戻る</a>
+        
+        <!-- 切り替えボタンを修正 -->
+        <div class="btn-group">
+            <a href="{% url 'polls:survey_detail' survey.id %}" class="btn btn-primary">ユーザービュー</a>
+            <a href="{% url 'polls:api_survey_detail' survey.id %}" class="btn btn-info">API表示</a>
+        </div>
+    </div>
 
     <h1>{{ survey.title }}</h1>
     <p>{{ survey.description }}</p>
