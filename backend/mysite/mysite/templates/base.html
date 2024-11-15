@@ -102,15 +102,21 @@
 <body>
     <!-- ナビゲーションバー -->
     <div class="navbar">
-        <a href="{% url 'entrance:home' %}">ホーム</a>
-        <a href="{% url 'polls:index' %}">アンケート</a>
+        <a href="{% url 'polls:index' %}">ホーム</a>
         <a href="{% url 'contest:index' %}">アイデアコンテスト</a>
         {% if user.is_authenticated %}
             <span style="color: white; margin-right: 1rem;">{{ user.username }} さん</span>
-            <a href="{% url 'entrance:logout' %}" class="btn-primary btn" style="padding: 5px 10px;">ログアウト</a>
+            <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary btn" style="padding: 5px 10px;">ログアウト</button>
+            </form>
+            {% if user.is_staff %}
+                <a href="{% url 'admin:index' %}" class="btn-primary btn" style="padding: 5px 10px;">管理サイト</a>
+            {% endif %}
         {% else %}
-            <a href="{% url 'entrance:login' %}" class="btn-primary btn" style="padding: 5px 10px;">ログイン</a>
-            <a href="{% url 'entrance:signup' %}" class="btn-success btn" style="padding: 5px 10px;">新規登録</a>        {% endif %}
+            <a href="{% url 'login' %}" class="btn-primary btn" style="padding: 5px 10px; margin-right: 10px;">ログイン</a>
+            <a href="{% url 'signup' %}" class="btn-success btn" style="padding: 5px 10px;">新規登録</a>
+        {% endif %}
     </div>
 
     <!-- メインコンテンツ -->

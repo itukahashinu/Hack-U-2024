@@ -33,7 +33,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
-    'entrance.apps.EntranceConfig',
+    #'entrance.apps.EntranceConfig',
     'contest.apps.ContestConfig',
     'rest_framework',
     'django.contrib.admin',
@@ -60,8 +60,9 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'mysite', 'templates')# パスを修正
-            ],
+            os.path.join(BASE_DIR, 'mysite', 'templates'),  # この行を確認
+            os.path.join(BASE_DIR, 'templates'),  # この行を追加
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,6 +74,7 @@ TEMPLATES = [
         },
     },
 ]
+
 
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
@@ -144,9 +146,6 @@ CORS_ALLOW_ALL_ORIGINS = True  # 本番環境では具体的なオリジンを�
 
 # ユーザーがログインに成功したら、どのページに移動させるかを指定
 LOGIN_REDIRECT_URL = 'polls:index'  # アンケート一覧ページへ移動
-
-# ユーザーがログアウトしたら、どのページに移動させるかを指定
-LOGOUT_REDIRECT_URL = None  # next パラメータを使用するため None に設定
 
 # ログイン関連の設定
 LOGIN_URL = 'login'

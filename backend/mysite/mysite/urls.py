@@ -20,6 +20,8 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.views.generic.edit import CreateView
+from django.contrib.auth.forms import UserCreationForm
 
 class CustomLogoutView(auth_views.LogoutView):
     def dispatch(self, request, *args, **kwargs):
@@ -30,15 +32,19 @@ class CustomLogoutView(auth_views.LogoutView):
         return redirect('polls:index')
 
 urlpatterns = [
-    path('', include('entrance.urls')),
+    path('admin/', admin.site.urls),
+    path('', include('polls.urls')),
     path('polls/', include('polls.urls')),
     path('contest/', include('contest.urls')),
-    path('admin/', admin.site.urls),
-    path('login/', auth_views.LoginView.as_view(
+    # 認証関連のURLを修正
+    path('accounts/login/', auth_views.LoginView.as_view(
         template_name='registration/login.html',
         redirect_authenticated_user=True
     ), name='login'),
-    path('logout/', CustomLogoutView.as_view(
-        next_page=None,  # next パラメータを使用
-    ), name='logout'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+    path('accounts/signup/', CreateView.as_view(
+        template_name='registration/signup.html',
+        form_class=UserCreationForm,
+        success_url='/'
+    ), name='signup'),
 ]
