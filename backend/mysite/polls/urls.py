@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from . import views
+from polls import views
 
 app_name = 'polls'
 
@@ -15,7 +15,6 @@ main_urlpatterns = [
     path('surveys/<int:survey_id>/', views.survey_detail_view, name='survey_detail'),
     path('surveys/<int:survey_id>/response/', views.survey_response_view, name='survey_response'),
 ]
-
 # API用URL
 api_urlpatterns = [
     path('api/', include(router.urls)),
@@ -28,3 +27,4 @@ api_urlpatterns = [
 
 # 両方のURLパターンを結合
 urlpatterns = main_urlpatterns + api_urlpatterns
+

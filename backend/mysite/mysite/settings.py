@@ -149,5 +149,5 @@ LOGIN_REDIRECT_URL = 'polls:index'  # アンケート一覧ページへ移動
 
 # ログイン関連の設定
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'polls:index'
+LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'

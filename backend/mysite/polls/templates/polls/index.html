@@ -3,11 +3,17 @@
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h1>アンケート一覧</h1>
-    {% if user.is_authenticated %}
-        <a href="{% url 'polls:survey_create' %}" class="btn btn-primary" style="padding: 8px 16px;">
-            新しいアンケートを作成
-        </a>
-    {% endif %}
+    <div class="mb-4">
+        {% if user.is_authenticated %}
+            <a href="{% url 'polls:survey_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> 新規アンケート作成
+            </a>
+        {% else %}
+            <a href="{% url 'signup' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> アンケートを作成するには会員登録が必要です
+            </a>
+        {% endif %}
+    </div>
 </div>
 
     {% if messages %}
