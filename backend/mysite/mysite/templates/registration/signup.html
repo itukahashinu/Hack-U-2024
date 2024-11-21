@@ -1,15 +1,102 @@
 {% extends 'base.html' %}
 
-{% block title %}新規登録{% endblock %}
-
 {% block content %}
-<div class="container">
-    <h2>新規登録</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">登録</button>
-    </form>
-    <p>すでにアカウントをお持ちの方は<a href="{% url 'login' %}">ログイン</a>してください。</p>
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            アカウント作成
+        </h2>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- フォームのエラーメッセージを表示 -->
+                {% if form.non_field_errors %}
+                <div class="rounded-md bg-red-50 p-4 mb-4">
+                    <div class="flex">
+                        <div class="text-red-700">
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ユーザー名フィールド -->
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.username.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {{ form.username.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- パスワードフィールド -->
+                <div>
+                    <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.password1.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {{ form.password1.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- パスワード確認フィールド -->
+                <div>
+                    <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        {{ form.password2.label }}
+                    </label>
+                    <div class="mt-1">
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {{ form.password2.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        登録する
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6">
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-gray-300"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-2 bg-white text-gray-500">
+                            すでにアカウントをお持ちの方は
+                        </span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <a href="{% url 'login' %}" class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        ログイン
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

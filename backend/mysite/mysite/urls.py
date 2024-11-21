@@ -34,7 +34,6 @@ class CustomLogoutView(auth_views.LogoutView):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('polls.urls')),
-    path('polls/', include('polls.urls')),
     path('contest/', include('contest.urls')),
     # 認証関連のURLを修正
     path('accounts/login/', auth_views.LoginView.as_view(
