@@ -1,85 +1,129 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1>新しいアンケートを作成</h1>
+<div class="container mx-auto px-6 py-8">
+    <h1 class="text-2xl font-bold text-gray-800 mb-8">新しいアンケートを作成</h1>
 
-    <form method="post" id="surveyForm" class="needs-validation" novalidate>
+    <form method="post" id="surveyForm" class="space-y-6" enctype="multipart/form-data">
         {% csrf_token %}
         
         <!-- アンケート基本情報 -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2 class="h5 mb-0">基本情報</h2>
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="border-b border-gray-100 bg-gray-50 px-6 py-4">
+                <h2 class="text-lg font-semibold text-gray-800">基本情報</h2>
             </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <label for="title" class="form-label">タイトル <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="title" name="title" required>
+            <div class="p-6 space-y-6">
+                <div>
+                    <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                        タイトル <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="title" name="title" required
+                           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
-                <div class="mb-3">
-                    <label for="description" class="form-label">説明</label>
-                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">説明</label>
+                    <textarea id="description" name="description" rows="3"
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
                 </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="start_date" class="form-label">開始日時 <span class="text-danger">*</span></label>
-                            <input type="datetime-local" class="form-control" id="start_date" name="start_date" required>
-                        </div>
+
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-2">カテゴリー</label>
+                    <select id="category" name="category"
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">カテゴリーを選択</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="image" class="block text-sm font-medium text-gray-700 mb-2">アンケート画像</label>
+                    <input type="file" id="image" name="image" accept="image/*"
+                           class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="start_date" class="block text-sm font-medium text-gray-700 mb-2">
+                            開始日時 <span class="text-red-500">*</span>
+                        </label>
+                        <input type="datetime-local" id="start_date" name="start_date" required
+                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="end_date" class="form-label">終了日時 <span class="text-danger">*</span></label>
-                            <input type="datetime-local" class="form-control" id="end_date" name="end_date" required>
-                        </div>
+                    <div>
+                        <label for="end_date" class="block text-sm font-medium text-gray-700 mb-2">
+                            終了日時 <span class="text-red-500">*</span>
+                        </label>
+                        <input type="datetime-local" id="end_date" name="end_date" required
+                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label for="required_responses" class="form-label">必要回答数</label>
-                            <input type="number" class="form-control" id="required_responses" name="required_responses" value="0" min="0">
-                        </div>
+                    <div>
+                        <label for="required_responses" class="block text-sm font-medium text-gray-700 mb-2">必要回答数</label>
+                        <input type="number" id="required_responses" name="required_responses" value="0" min="0"
+                               class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
+                </div>
+
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+                        ステータス <span class="text-red-500">*</span>
+                    </label>
+                    <select id="status" name="status" required
+                            class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="draft">下書き</option>
+                        <option value="active" selected>進行中</option>
+                        <option value="paused">一時停止</option>
+                        <option value="closed">終了</option>
+                    </select>
                 </div>
             </div>
         </div>
 
         <!-- 質問リスト -->
-        <div id="questions-container">
+        <div id="questions-container" class="space-y-4">
             <!-- 質問テンプレート -->
             <template id="question-template">
-                <div class="card mb-3 question-card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h3 class="h6 mb-0">質問 <span class="question-number"></span></h3>
-                        <button type="button" class="btn btn-danger btn-sm remove-question">
-                            <i class="fas fa-trash"></i> 削除
+                <div class="bg-white rounded-xl shadow-sm overflow-hidden question-card">
+                    <div class="border-b border-gray-100 bg-gray-50 px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-semibold text-gray-800">質問 <span class="question-number"></span></h3>
+                        <button type="button" class="text-red-500 hover:text-red-700 transition-colors duration-200 remove-question">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">質問文 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="questions[][text]" required>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                質問文 <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="questions[][text]" required
+                                   class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">質問タイプ</label>
-                            <select class="form-select" name="questions[][type]">
-                                <option value="radio">単一選択（ラジオボタン）</option>
-                                <option value="checkbox">複数選択（チェックボックス）</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="questions[][required]" checked>
-                                <label class="form-check-label">必須回答</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">質問タイプ</label>
+                                <select name="questions[0][type]"
+                                        class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <option value="radio">単一選択（ラジオボタン）</option>
+                                    <option value="checkbox">複数選択（チェックボックス）</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <label class="inline-flex items-center mt-6">
+                                    <input type="checkbox" name="questions[][required]" checked
+                                           class="form-checkbox h-5 w-5 text-blue-500 rounded focus:ring-2 focus:ring-blue-500">
+                                    <span class="ml-2 text-gray-700">必須回答</span>
+                                </label>
                             </div>
                         </div>
                         <div class="choices-container">
-                            <label class="form-label">選択肢</label>
-                            <div class="choices-list">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">選択肢</label>
+                            <div class="choices-list space-y-2">
                                 <!-- 選択肢は動的に追加される -->
                             </div>
-                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2 add-choice">
-                                <i class="fas fa-plus"></i> 選択肢を追加
+                            <button type="button" class="mt-4 px-4 py-2 text-sm text-blue-500 hover:text-blue-700 transition-colors duration-200 add-choice">
+                                <i class="fas fa-plus mr-1"></i> 選択肢を追加
                             </button>
                         </div>
                     </div>
@@ -87,13 +131,20 @@
             </template>
         </div>
 
-        <button type="button" class="btn btn-outline-primary mb-4" id="add-question">
-            <i class="fas fa-plus"></i> 質問を追加
+        <button type="button" id="add-question"
+                class="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-blue-500 hover:border-blue-500 transition-colors duration-200">
+            <i class="fas fa-plus mr-2"></i> 質問を追加
         </button>
 
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <a href="{% url 'polls:index' %}" class="btn btn-secondary me-md-2">キャンセル</a>
-            <button type="submit" class="btn btn-primary">アンケートを作成</button>
+        <div class="flex justify-end space-x-4 mt-8">
+            <a href="{% url 'polls:index' %}" 
+               class="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors duration-200">
+                キャンセル
+            </a>
+            <button type="submit"
+                    class="px-6 py-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors duration-200">
+                <i class="fas fa-check mr-2"></i> アンケートを作成
+            </button>
         </div>
     </form>
 </div>
@@ -109,35 +160,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const newQuestion = questionTemplate.content.cloneNode(true);
         questionCount++;
         
+        // フォーム要素の名前を更新
+        newQuestion.querySelector('input[name^="questions"][name$="[text]"]')
+            .setAttribute('name', `questions[${questionCount-1}][text]`);
+        newQuestion.querySelector('select[name^="questions"][name$="[type]"]')
+            .setAttribute('name', `questions[${questionCount-1}][type]`);
+        
         // 質問番号を更新
         newQuestion.querySelector('.question-number').textContent = questionCount;
         
-        // 最初の2つの選択肢を追加
+        // 選択肢の追加
         const choicesList = newQuestion.querySelector('.choices-list');
-        addChoice(choicesList);
-        addChoice(choicesList);
-        
-        // 質問の削除ボタンの処理
-        newQuestion.querySelector('.remove-question').addEventListener('click', function(e) {
-            e.target.closest('.question-card').remove();
-            updateQuestionNumbers();
-        });
-        
-        // 選択肢追加ボタンの処理
-        newQuestion.querySelector('.add-choice').addEventListener('click', function(e) {
-            addChoice(e.target.previousElementSibling);
-        });
+        addChoice(choicesList, questionCount-1);
+        addChoice(choicesList, questionCount-1);
         
         questionsContainer.appendChild(newQuestion);
     });
 
     // 選択肢を追加する関数
-    function addChoice(choicesList) {
+    function addChoice(choicesList, questionIndex) {
         const choiceDiv = document.createElement('div');
-        choiceDiv.className = 'input-group mb-2';
+        choiceDiv.className = 'flex items-center space-x-2';
         choiceDiv.innerHTML = `
-            <input type="text" class="form-control" name="questions[][choices][]" placeholder="選択肢" required>
-            <button type="button" class="btn btn-outline-danger remove-choice">
+            <input type="text" name="questions[${questionIndex}][choices][]" 
+                   placeholder="選択肢" required
+                   class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <button type="button" class="text-red-500 hover:text-red-700 transition-colors duration-200 remove-choice">
                 <i class="fas fa-times"></i>
             </button>
         `;

@@ -1,10 +1,30 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Theme, Idea
 from .forms import IdeaForm
+from datetime import datetime
 
 def index(request):
-    themes = Theme.objects.all()
-    return render(request, 'contest/index.html', {'themes': themes})
+    # 現在の年月を取得
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+    
+    # テーマ（後でAPIから取得する予定）
+    current_theme = "テスト用テーマ"
+    
+    # テーマ一覧（既存のコード）
+    themes = Theme.objects.all().prefetch_related(
+        'idea_set',
+        'idea_set__author',
+        'idea_set__likes'
+    )
+    
+    return render(request, 'contest/index.html', {
+        'themes': themes,
+        'current_year': current_year,
+        'current_month': current_month,
+        'current_theme': current_theme,
+    })
 
 def submit_idea(request):
     if request.method == 'POST':

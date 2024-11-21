@@ -17,9 +17,10 @@ class Category(models.Model):
 
 class Survey(models.Model):
     STATUS_CHOICES = [
-        ('draft', 'Draft'),
-        ('active', 'Active'),
-        ('closed', 'Closed'),
+        ('draft', '下書き'),
+        ('active', '進行中'),
+        ('paused', '一時停止'),
+        ('closed', '終了'),
     ]
 
     title = models.CharField(max_length=200, verbose_name='Title')
@@ -38,8 +39,8 @@ class Survey(models.Model):
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
-        default='draft',
-        verbose_name='Status'
+        default='active',
+        verbose_name='ステータス'
     )
     category = models.ForeignKey(
         Category,
@@ -79,6 +80,36 @@ class Survey(models.Model):
         verbose_name = 'survey'
         verbose_name_plural = 'surveys'
         ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        # 現在の日時
+        now = timezone.now()
+        
+        # 新規作成時はステータスの自動設定を行わない
+        if not self.pk:  # 新規作成時
+            super().save(*args, **kwargs)
+            return
+            
+        # 既存のアンケートの場合のみ、日時に基づいてステータスを自動更新
+        if self.status == 'active':
+            if now > self.end_date:
+                self.status = 'closed'
+        
+        super().save(*args, **kwargs)
+
+    def update_status(self):
+        """
+        現在の日時に基づいてステータスを更新する
+        """
+        now = timezone.now()
+        if self.status != 'paused':  # 一時停止中は自動更新しない
+            if now < self.start_date:
+                self.status = 'draft'
+            elif now > self.end_date:
+                self.status = 'closed'
+            elif self.start_date <= now <= self.end_date:
+                self.status = 'active'
+        self.save()
 
 class Question(models.Model):
     survey = models.ForeignKey(

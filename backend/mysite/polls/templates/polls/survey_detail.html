@@ -1,101 +1,230 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="{% url 'polls:index' %}" class="btn btn-secondary">戻る</a>
-        
-        <!-- 切り替えボタンを修正 -->
-        <div class="btn-group">
-            <a href="{% url 'polls:survey_detail' survey.id %}" class="btn btn-primary">ユーザービュー</a>
-            <a href="{% url 'polls:api_survey_detail' survey.id %}" class="btn btn-info">API表示</a>
-        </div>
+<!-- ヒーローセクション -->
+<div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+    <div class="container mx-auto px-6 py-16">
+        <h1 class="text-4xl font-bold mb-4">{{ survey.title }}</h1>
+        <p class="text-xl opacity-90">{{ survey.description }}</p>
     </div>
-
-    <h1>{{ survey.title }}</h1>
-    <p>{{ survey.description }}</p>
-
-    <!-- 通常の表示 -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h2 class="card-title h5 mb-0">基本情報</h2>
-        </div>
-        <div class="card-body">
-            <p>ステータス: {{ survey.status }}</p>
-            <p>必要回答数: {{ survey.required_responses }}</p>
-            <p>現在の回答数: {{ survey.current_responses }}</p>
-            
-            {% if survey.status == 'active' %}
-                <a href="{% url 'polls:survey_response' survey.id %}" class="btn btn-primary">
-                    このアンケートに回答する
-                </a>
-            {% else %}
-                <p class="alert alert-info">
-                    {% if survey.status == 'closed' %}
-                        このアンケートは終了しました
-                    {% else %}
-                        このアンケートはまだ開始されていません
-                    {% endif %}
-                </p>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- デバッグ情報（開発環境のみ表示） -->
-    {% if debug %}
-    <div class="card mt-4">
-        <div class="card-header bg-info text-white">
-            <h3 class="card-title mb-0">デバッグ情報</h3>
-        </div>
-        <div class="card-body">
-            <pre class="bg-light p-3">
-Survey Details:
-ID: {{ survey.id }}
-Title: {{ survey.title }}
-Description: {{ survey.description }}
-Status: {{ survey.status }}
-Created at: {{ survey.created_at }}
-Start date: {{ survey.start_date }}
-End date: {{ survey.end_date }}
-Required responses: {{ survey.required_responses }}
-Current responses: {{ survey.current_responses }}
-
-Questions:
-{% for question in survey.questions.all %}
-- Question ID: {{ question.id }}
-  Text: {{ question.question_text }}
-  Type: {{ question.question_type }}
-  Required: {{ question.is_required }}
-  Order: {{ question.order }}
-  Choices:
-  {% for choice in question.choices.all %}
-    * Choice ID: {{ choice.id }}
-      Text: {{ choice.choice_text }}
-      Votes: {{ choice.votes }}
-      Order: {{ choice.order }}
-  {% endfor %}
-{% endfor %}
-
-Recent Responses:
-{% for response in survey.responses.all|slice:":5" %}
-- Response ID: {{ response.id }}
-  Created at: {{ response.created_at }}
-  Answers:
-  {% for answer in response.answers.all %}
-    * Question: {{ answer.question.question_text }}
-      Selected choices: {% for choice in answer.selected_choices.all %}{{ choice.choice_text }}{% if not forloop.last %}, {% endif %}{% endfor %}
-  {% endfor %}
-{% endfor %}
-            </pre>
-        </div>
-    </div>
-    {% endif %}
 </div>
 
-<style>
-    pre {
-        white-space: pre-wrap;
-        word-wrap: break-word;
+<!-- メインコンテンツ -->
+<main class="container mx-auto px-6 -mt-10">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-6">
+            <!-- ナビゲーションボタン -->
+            <div class="flex justify-between items-center mb-6">
+                <a href="{% url 'polls:index' %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                    <i class="fas fa-arrow-left mr-2"></i> 戻る
+                </a>
+                <div class="flex space-x-2">
+                    <a href="{% url 'polls:survey_detail' survey.id %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        ユーザービュー
+                    </a>
+                    <a href="{% url 'polls:api_survey_detail' survey.id %}" 
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        API表示
+                    </a>
+                </div>
+            </div>
+
+            <!-- メインレイアウト -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 左側：画像 -->
+                <div id="survey-image" class="relative">
+                    {% if survey.image %}
+                        <img src="{{ survey.image.url }}" alt="{{ survey.title }}" 
+                             class="w-full h-96 object-cover rounded-lg shadow-md">
+                    {% else %}
+                        <div class="w-full h-96 bg-gray-100 rounded-lg shadow-md flex items-center justify-center">
+                            <i class="fas fa-image text-6xl text-gray-300"></i>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- 右側：詳細情報 -->
+                <div class="space-y-6">
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-900 mb-4">アンケート詳細</h2>
+                        
+                        <!-- プログレスバーを追加 -->
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm font-medium text-gray-700">回答進捗状況</span>
+                                <span class="text-sm font-medium text-blue-600">
+                                    {{ survey.current_responses }} / {{ survey.required_responses }}
+                                </span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                {% if survey.required_responses > 0 %}
+                                    <div class="bg-blue-600 h-2.5 rounded-full" 
+                                         style="width: {% widthratio survey.current_responses survey.required_responses 100 %}%">
+                                    </div>
+                                {% else %}
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 100%"></div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">ステータス</span>
+                                <span class="font-medium 
+                                    {% if survey.status == 'active' %}text-green-600
+                                    {% elif survey.status == 'draft' %}text-gray-600
+                                    {% elif survey.status == 'paused' %}text-yellow-600
+                                    {% else %}text-red-600{% endif %}">
+                                    {{ survey.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">必要回答数</span>
+                                <span class="font-medium">{{ survey.required_responses }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">現在の回答数</span>
+                                <span class="font-medium">{{ survey.current_responses }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">開始日時</span>
+                                <span class="font-medium">{{ survey.start_date|date:"Y/m/d H:i" }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">終了日時</span>
+                                <span class="font-medium">{{ survey.end_date|date:"Y/m/d H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 回答ボタン -->
+                    {% if survey.status == 'active' %}
+                        <button id="start-survey" 
+                                class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            このアンケートに回答する
+                        </button>
+                    {% else %}
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-exclamation-circle text-yellow-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700">
+                                        {% if survey.status == 'draft' %}
+                                            このアンケートはまだ下書きです
+                                        {% elif survey.status == 'paused' %}
+                                            このアンケートは一時停止中です
+                                        {% else %}
+                                            このアンケートは終了しました
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- アンケート質問（初期状態では非表示） -->
+            <div id="survey-questions" class="{% if not survey.status == 'active' %}hidden{% endif %} mt-8 space-y-6">
+                <form method="post" action="{% url 'polls:submit_survey' survey.id %}" class="space-y-6">
+                    {% csrf_token %}
+                    
+                    <!-- デバッグ情報 -->
+                    {% if debug %}
+                    <div class="bg-gray-100 p-4 mb-4 rounded">
+                        <p>Survey ID: {{ survey.id }}</p>
+                        <p>Questions Count: {{ survey.questions.count }}</p>
+                        <p>Status: {{ survey.status }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if survey.questions.exists %}
+                        {% for question in survey.questions.all %}
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">
+                                    Q{{ forloop.counter }}. {{ question.question_text }}
+                                    {% if question.is_required %}
+                                        <span class="text-red-500 text-sm">*</span>
+                                    {% endif %}
+                                </h3>
+                                
+                                <!-- 選択肢の存在確認 -->
+                                {% if question.choices.exists %}
+                                    <div class="space-y-3">
+                                        {% for choice in question.choices.all %}
+                                            <div class="flex items-center">
+                                                <input type="{{ question.question_type }}" 
+                                                       name="question_{{ question.id }}{% if question.question_type == 'checkbox' %}[]{% endif %}" 
+                                                       value="{{ choice.id }}"
+                                                       id="choice_{{ choice.id }}"
+                                                       {% if question.is_required and question.question_type == 'radio' %}required{% endif %}
+                                                       class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                                <label for="choice_{{ choice.id }}" 
+                                                       class="ml-3 block text-sm font-medium text-gray-700">
+                                                    {{ choice.choice_text }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-gray-500">この質問にはまだ選択肢が登録されていません。</p>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <div class="text-center text-gray-500 py-8">
+                                <i class="fas fa-exclamation-circle text-yellow-400 text-xl mb-2"></i>
+                                <p>このアンケートにはまだ質問が登録されていません。</p>
+                            </div>
+                        {% endfor %}
+                        
+                        <!-- 送信ボタン -->
+                        {% if survey.questions.exists and survey.status == 'active' %}
+                            <div class="flex justify-end">
+                                <button type="submit" 
+                                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    回答を送信
+                                </button>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startButton = document.getElementById('start-survey');
+    const surveyImage = document.getElementById('survey-image');
+    const surveyQuestions = document.getElementById('survey-questions');
+
+    // デバッグ情報
+    console.log('Survey Questions Element:', surveyQuestions);
+    console.log('Questions Count:', document.querySelectorAll('.question-card').length);
+
+    if (startButton && surveyQuestions) {
+        startButton.addEventListener('click', function() {
+            // 質問の存在確認
+            const hasQuestions = surveyQuestions.querySelector('.question-card') !== null;
+            if (!hasQuestions) {
+                console.log('No questions found');
+                alert('このアンケートにはまだ質問が登録されていません。');
+                return;
+            }
+
+            surveyImage.classList.add('hidden');
+            surveyQuestions.classList.remove('hidden');
+            startButton.classList.add('hidden');
+            
+            // スムーズスクロール
+            surveyQuestions.scrollIntoView({ behavior: 'smooth' });
+        });
     }
-</style>
+});
+</script>
 {% endblock %}

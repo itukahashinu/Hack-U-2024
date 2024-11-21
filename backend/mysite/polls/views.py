@@ -5,7 +5,7 @@ from django.db import transaction
 from django.db.models import F
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.response import Response as DRFResponse #DjangoFrameworkResponse
@@ -284,7 +284,7 @@ class SurveyViewSet(viewsets.ModelViewSet):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['GET'])
-@permission_classes([AllowAny])  # この行���追加
+@permission_classes([AllowAny])  # この行追加
 def debug_forms(request):
     """デバッグ用：作成されたすべてのフォームを表示"""
     try:
@@ -568,7 +568,7 @@ def survey_create_view(request):
                     start_date=request.POST['start_date'],
                     end_date=request.POST['end_date'],
                     required_responses=int(request.POST['required_responses']),
-                    status='draft'
+                    status='active'
                 )
 
                 # 質問と選択肢を保存
@@ -634,3 +634,162 @@ def parse_questions_data(post_data):
                     questions[q_index]['choices'].append(value)
     
     return questions
+
+@require_POST
+def update_survey_status(request, survey_id):
+    try:
+        survey = Survey.objects.get(id=survey_id, author=request.user)
+        new_status = request.POST.get('status')
+        if new_status in dict(Survey.STATUS_CHOICES):
+            survey.status = new_status
+            survey.save()
+            return JsonResponse({
+                'status': 'success',
+                'new_status': survey.get_status_display()
+            })
+    except Survey.DoesNotExist:
+        return JsonResponse({'status': 'error'}, status=404)
+    return JsonResponse({'status': 'error'}, status=400)
+
+def survey_create(request):
+    if request.method == 'POST':
+        # デバッグ出力を追加
+        print("POST data:", request.POST)
+        print("Files:", request.FILES)
+        
+        # POSTデータから質問と選択肢を取得
+        questions_data = {}
+        for key, value in request.POST.items():
+            if key.startswith('questions['):
+                match = re.match(r'questions\[(\d+)\]\[(\w+)\]', key)
+                if match:
+                    q_index, q_field = match.groups()
+                    if q_index not in questions_data:
+                        questions_data[q_index] = {}
+                    questions_data[q_index][q_field] = value
+        
+        print("Processed questions data:", questions_data)
+        
+        # アンケートの作成
+        survey = Survey.objects.create(
+            title=request.POST.get('title'),
+            description=request.POST.get('description'),
+            author=request.user,
+            start_date=request.POST.get('start_date'),
+            end_date=request.POST.get('end_date'),
+            required_responses=request.POST.get('required_responses', 0),
+            status=request.POST.get('status', 'active')
+        )
+
+        # POSTデータから質問と選択肢を取得
+        questions = []
+        choices = {}
+        
+        for key, value in request.POST.items():
+            # 質問のテキストを取得
+            if key.startswith('questions[') and key.endswith('[text]'):
+                index = key[key.find('[')+1:key.find(']')]
+                questions.append({
+                    'index': index,
+                    'text': value,
+                    'type': request.POST.get(f'questions[{index}][type]', 'radio')
+                })
+            
+            # 選択肢を取得
+            if key.startswith('questions[') and '[choices][]' in key:
+                index = key[key.find('[')+1:key.find(']')]
+                if index not in choices:
+                    choices[index] = []
+                if value.strip():  # 空の選択肢を除外
+                    choices[index].append(value)
+
+        # デバッグ用
+        print("Questions:", questions)
+        print("Choices:", choices)
+
+        # 質問と選択肢を保存
+        for q in questions:
+            if q['text'].strip():  # 空の質問を除外
+                question = Question.objects.create(
+                    survey=survey,
+                    question_text=q['text'],
+                    question_type=q['type'],
+                    is_required=True
+                )
+                
+                # この質問の選択肢を保存
+                q_choices = choices.get(q['index'], [])
+                for choice_text in q_choices:
+                    Choice.objects.create(
+                        question=question,
+                        choice_text=choice_text
+                    )
+                
+                # デバッグ用
+                print(f"Created question: {question.question_text}")
+                print(f"Created choices: {q_choices}")
+
+        return redirect('polls:survey_detail', survey_id=survey.id)
+    
+    # GETリクエストの場合
+    return render(request, 'polls/survey_create.html', {
+        'categories': Category.objects.all()
+    })
+
+@login_required
+def submit_survey(request, survey_id):
+    if request.method != 'POST':
+        return redirect('polls:survey_detail', survey_id=survey_id)
+    
+    survey = get_object_or_404(Survey, id=survey_id)
+    
+    # アンケートが回答可能な状態かチェック
+    if survey.status != 'active':
+        messages.error(request, 'このアンケートは現在回答を受け付けていません。')
+        return redirect('polls:survey_detail', survey_id=survey_id)
+    
+    try:
+        with transaction.atomic():
+            # 回答レコードを作成
+            response = SurveyResponse.objects.create(
+                survey=survey
+            )
+            
+            # 各質問への回答を保存
+            for question in survey.questions.all():
+                # 質問の回答を取得
+                answer_key = f'question_{question.id}'
+                if question.question_type == 'checkbox':
+                    answer_key += '[]'
+                    choice_ids = request.POST.getlist(answer_key)
+                else:
+                    choice_ids = [request.POST.get(answer_key)]
+                
+                # 必須チェック
+                if question.is_required and not choice_ids:
+                    raise ValueError(f'質問「{question.question_text}」は必須です。')
+                
+                # 回答を保存
+                if choice_ids:
+                    answer = Answer.objects.create(
+                        response=response,
+                        question=question
+                    )
+                    # 選択された選択肢を関連付け
+                    selected_choices = Choice.objects.filter(id__in=choice_ids)
+                    answer.selected_choices.set(selected_choices)
+            
+            # 回答数を更新
+            survey.current_responses = F('current_responses') + 1
+            survey.save()
+            
+            messages.success(request, 'アンケートの回答を送信しました。ご協力ありがとうございます。')
+            return redirect('polls:index')
+            
+    except ValueError as e:
+        messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, 'エラーが発生しました。もう一度お試しください。')
+        print(f"Error submitting survey: {e}")
+    
+    return redirect('polls:survey_detail', survey_id=survey_id)

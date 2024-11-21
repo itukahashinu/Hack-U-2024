@@ -3,14 +3,19 @@ from .models import Survey, Question, Choice, SurveyResponse, Answer
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
-    extra = 3
+    extra = 2  # 最低2つの選択肢を表示
+    min_num = 2  # 最低2つの選択肢を必須に
+    validate_min = True  # 最低数のバリデーションを有効化
     fields = ['choice_text', 'order']
 
 class QuestionInline(admin.StackedInline):
     model = Question
     extra = 1
+    min_num = 1  # 最低1つの質問を必須に
+    validate_min = True  # 最低数のバリデーションを有効化
     fields = ['question_text', 'question_type', 'is_required', 'order']
     show_change_link = True
+    inlines = [ChoiceInline]  # 質問内に選択肢を表示
 
 class AnswerInline(admin.TabularInline):
     model = Answer
@@ -25,17 +30,38 @@ class SurveyAdmin(admin.ModelAdmin):
     search_fields = ['title']
     readonly_fields = ['status']
     fieldsets = [
-        (None, {'fields': ['title', 'description']}),
+        (None, {'fields': ['title', 'description', 'image', 'category']}),
         ('Schedule', {
             'fields': ['start_date', 'end_date', 'required_responses'],
-            'description': 'Set the survey schedule and response requirements'
+            'description': 'アンケートのスケジュールと必要回答数を設定してください'
         }),
         ('Status', {
             'fields': ['status'],
-            'description': 'Survey status is automatically updated based on dates'
+            'description': 'ステータスは日付に基づいて自動的に更新されます'
         }),
     ]
     inlines = [QuestionInline]
+
+    def save_formset(self, request, form, formset, change):
+        """質問と選択肢の保存時の追加処理"""
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if isinstance(instance, Question):
+                if not instance.order:  # orderが設定されていない場合
+                    # 既存の質問数を取得して順番を設定
+                    max_order = Question.objects.filter(
+                        survey=instance.survey
+                    ).aggregate(models.Max('order'))['order__max'] or 0
+                    instance.order = max_order + 1
+            elif isinstance(instance, Choice):
+                if not instance.order:  # orderが設定されていない場合
+                    # 既存の選択肢数を取得して順番を設定
+                    max_order = Choice.objects.filter(
+                        question=instance.question
+                    ).aggregate(models.Max('order'))['order__max'] or 0
+                    instance.order = max_order + 1
+            instance.save()
+        formset.save_m2m()
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
@@ -45,12 +71,6 @@ class QuestionAdmin(admin.ModelAdmin):
     fields = ['survey', 'question_text', 'question_type', 'is_required', 'order']
     inlines = [ChoiceInline]
 
-@admin.register(Choice)
-class ChoiceAdmin(admin.ModelAdmin):
-    list_display = ('choice_text', 'get_survey', 'get_question', 'get_question_type', 'order', 'votes')
-    list_filter = ['question__survey', 'question__question_type', 'question']
-    search_fields = ['choice_text', 'question__question_text', 'question__survey__title']
-    fields = ['question', 'choice_text', 'votes', 'order']
 
     def get_survey(self, obj):
         return obj.question.survey.title
