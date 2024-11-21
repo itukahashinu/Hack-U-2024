@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import Question, Choice, Survey
 
 class CustomUserCreationForm(UserCreationForm):
     username = forms.CharField(
@@ -19,3 +20,28 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'password1', 'password2')
+
+class QuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['question_text', 'question_type', 'is_required', 'order']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        print(f"Validating question form: {cleaned_data}")  # デバッグ用
+        return cleaned_data
+
+class ChoiceForm(forms.ModelForm):
+    class Meta:
+        model = Choice
+        fields = ['choice_text', 'order']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        print(f"Validating choice form: {cleaned_data}")  # デバッグ用
+        return cleaned_data
+
+class SurveyForm(forms.ModelForm):
+    class Meta:
+        model = Survey
+        exclude = ['status', 'current_responses']

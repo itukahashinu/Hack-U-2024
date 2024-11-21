@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class Category(models.Model):
     name = models.CharField(max_length=50, verbose_name='Category name')
@@ -111,6 +113,18 @@ class Survey(models.Model):
                 self.status = 'active'
         self.save()
 
+    def get_questions(self):
+        """質問を順序付きで取得"""
+        return self.questions.all().order_by('order')
+
+    def has_questions(self):
+        """質問が存在するかチェック"""
+        return self.questions.exists()
+
+    def get_question_count(self):
+        """質問数を取得"""
+        return self.questions.count()
+
 class Question(models.Model):
     survey = models.ForeignKey(
         Survey,
@@ -148,6 +162,25 @@ class Question(models.Model):
         verbose_name_plural = 'questions'
         ordering = ['survey', 'order']
 
+    def save(self, *args, **kwargs):
+        # デバッグ情報を追加
+        print(f"\nSaving Question: {self.question_text}")
+        print(f"Survey: {self.survey.title}")
+        print(f"Choices count: {self.choices.count() if self.pk else 0}")
+        super().save(*args, **kwargs)
+
+    def get_choices(self):
+        """選択肢を順序付きで取得"""
+        return self.choices.all().order_by('order')
+
+    def has_choices(self):
+        """選択肢が存在するかチェック"""
+        return self.choices.exists()
+
+    def get_choice_count(self):
+        """選択肢数を取得"""
+        return self.choices.count()
+
 class Choice(models.Model):
     question = models.ForeignKey(
         Question,
@@ -175,6 +208,12 @@ class Choice(models.Model):
         verbose_name = 'choice'
         verbose_name_plural = 'choices'
         ordering = ['question', 'order']
+
+    def save(self, *args, **kwargs):
+        # デバッグ情報を追加
+        print(f"\nSaving Choice: {self.choice_text}")
+        print(f"Question: {self.question.question_text}")
+        super().save(*args, **kwargs)
 
 class SurveyResponse(models.Model):
     survey = models.ForeignKey(
@@ -221,3 +260,20 @@ class Answer(models.Model):
     class Meta:
         verbose_name = 'answer'
         verbose_name_plural = 'answers'
+
+@receiver(post_save, sender=Question)
+def create_default_choices(sender, instance, created, **kwargs):
+    """質問作成時にデフォルトの選択肢を作成"""
+    # 選択肢が存在しない場合かつ管理画面からの作成時のみデフォルト選択肢を作成
+    if created and not instance.choices.exists() and hasattr(instance, '_from_admin'):
+        print(f"\nCreating default choices for question: {instance.question_text}")
+        Choice.objects.create(
+            question=instance,
+            choice_text='選択肢 1',
+            order=1
+        )
+        Choice.objects.create(
+            question=instance,
+            choice_text='選択肢 2',
+            order=2
+        )

@@ -11,7 +11,7 @@ router.register(r'surveys', views.SurveyViewSet, basename='survey-api')
 # 通常のユーザー向けURL
 main_urlpatterns = [
     path('', views.index, name='index'),
-    path('surveys/create/', views.survey_create_view, name='survey_create'),
+    path('surveys/create/', views.create_survey, name='survey_create'),
     path('surveys/<int:survey_id>/', views.survey_detail_view, name='survey_detail'),
     path('surveys/<int:survey_id>/response/', views.survey_response_view, name='survey_response'),
     path('survey/<int:survey_id>/update-status/', views.update_survey_status, name='update_survey_status'),

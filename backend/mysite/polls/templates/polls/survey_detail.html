@@ -128,7 +128,7 @@
                 </div>
             </div>
 
-            <!-- アンケート質問（初期状態では非表示） -->
+            <!-- アンケート質問部分を修正 -->
             <div id="survey-questions" class="{% if not survey.status == 'active' %}hidden{% endif %} mt-8 space-y-6">
                 <form method="post" action="{% url 'polls:submit_survey' survey.id %}" class="space-y-6">
                     {% csrf_token %}
@@ -137,14 +137,14 @@
                     {% if debug %}
                     <div class="bg-gray-100 p-4 mb-4 rounded">
                         <p>Survey ID: {{ survey.id }}</p>
-                        <p>Questions Count: {{ survey.questions.count }}</p>
+                        <p>Questions Count: {{ questions|length }}</p>
                         <p>Status: {{ survey.status }}</p>
                     </div>
                     {% endif %}
                     
-                    {% if survey.questions.exists %}
-                        {% for question in survey.questions.all %}
-                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    {% if questions %}
+                        {% for question in questions %}
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 question-card">
                                 <h3 class="text-lg font-medium text-gray-900 mb-4">
                                     Q{{ forloop.counter }}. {{ question.question_text }}
                                     {% if question.is_required %}
@@ -152,10 +152,9 @@
                                     {% endif %}
                                 </h3>
                                 
-                                <!-- 選択肢の存在確認 -->
                                 {% if question.choices.exists %}
                                     <div class="space-y-3">
-                                        {% for choice in question.choices.all %}
+                                        {% for choice in question.choices.all|dictsort:"order" %}
                                             <div class="flex items-center">
                                                 <input type="{{ question.question_type }}" 
                                                        name="question_{{ question.id }}{% if question.question_type == 'checkbox' %}[]{% endif %}" 
@@ -174,15 +173,10 @@
                                     <p class="text-gray-500">この質問にはまだ選択肢が登録されていません。</p>
                                 {% endif %}
                             </div>
-                        {% empty %}
-                            <div class="text-center text-gray-500 py-8">
-                                <i class="fas fa-exclamation-circle text-yellow-400 text-xl mb-2"></i>
-                                <p>このアンケートにはまだ質問が登録されていません。</p>
-                            </div>
                         {% endfor %}
                         
                         <!-- 送信ボタン -->
-                        {% if survey.questions.exists and survey.status == 'active' %}
+                        {% if questions and survey.status == 'active' %}
                             <div class="flex justify-end">
                                 <button type="submit" 
                                         class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
@@ -190,6 +184,11 @@
                                 </button>
                             </div>
                         {% endif %}
+                    {% else %}
+                        <div class="text-center text-gray-500 py-8">
+                            <i class="fas fa-exclamation-circle text-yellow-400 text-xl mb-2"></i>
+                            <p>このアンケートにはまだ質問が登録されていません。</p>
+                        </div>
                     {% endif %}
                 </form>
             </div>

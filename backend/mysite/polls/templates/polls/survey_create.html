@@ -2,6 +2,22 @@
 
 {% block content %}
 <div class="container mx-auto px-6 py-8">
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-4 {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} rounded-lg">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+        {{ error }}
+    </div>
+    {% endif %}
+
     <h1 class="text-2xl font-bold text-gray-800 mb-8">新しいアンケートを作成</h1>
 
     <form method="post" id="surveyForm" class="space-y-6" enctype="multipart/form-data">
@@ -97,7 +113,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 質問文 <span class="text-red-500">*</span>
                             </label>
-                            <input type="text" name="questions[][text]" required
+                            <input type="text" name="questions[0][text]" required
                                    class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -111,18 +127,20 @@
                             </div>
                             <div class="flex items-center">
                                 <label class="inline-flex items-center mt-6">
-                                    <input type="checkbox" name="questions[][required]" checked
+                                    <input type="checkbox" name="questions[0][required]" checked
                                            class="form-checkbox h-5 w-5 text-blue-500 rounded focus:ring-2 focus:ring-blue-500">
                                     <span class="ml-2 text-gray-700">必須回答</span>
                                 </label>
                             </div>
                         </div>
                         <div class="choices-container">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">選択肢</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                選択肢 <span class="text-red-500">*</span>
+                            </label>
                             <div class="choices-list space-y-2">
                                 <!-- 選択肢は動的に追加される -->
                             </div>
-                            <button type="button" class="mt-4 px-4 py-2 text-sm text-blue-500 hover:text-blue-700 transition-colors duration-200 add-choice">
+                            <button type="button" class="add-choice mt-4 px-4 py-2 text-sm text-blue-500 hover:text-blue-700 transition-colors duration-200">
                                 <i class="fas fa-plus mr-1"></i> 選択肢を追加
                             </button>
                         </div>
@@ -161,16 +179,27 @@ document.addEventListener('DOMContentLoaded', function() {
         questionCount++;
         
         // フォーム要素の名前を更新
-        newQuestion.querySelector('input[name^="questions"][name$="[text]"]')
-            .setAttribute('name', `questions[${questionCount-1}][text]`);
-        newQuestion.querySelector('select[name^="questions"][name$="[type]"]')
-            .setAttribute('name', `questions[${questionCount-1}][type]`);
+        const questionInputs = newQuestion.querySelectorAll('input[name^="questions"], select[name^="questions"]');
+        questionInputs.forEach(input => {
+            const originalName = input.getAttribute('name');
+            if (originalName) {
+                input.setAttribute('name', originalName.replace('[0]', `[${questionCount-1}]`));
+            }
+        });
         
         // 質問番号を更新
         newQuestion.querySelector('.question-number').textContent = questionCount;
         
-        // 選択肢の追加
+        // 選択肢リストと追加ボタンの設定
         const choicesList = newQuestion.querySelector('.choices-list');
+        const addChoiceBtn = newQuestion.querySelector('.add-choice');
+        
+        // 選択肢追加ボタンのイベントリスナーを設定
+        addChoiceBtn.addEventListener('click', function() {
+            addChoice(choicesList, questionCount-1);
+        });
+        
+        // 初期選択肢を追加
         addChoice(choicesList, questionCount-1);
         addChoice(choicesList, questionCount-1);
         
@@ -180,35 +209,37 @@ document.addEventListener('DOMContentLoaded', function() {
     // 選択肢を追加する関数
     function addChoice(choicesList, questionIndex) {
         const choiceDiv = document.createElement('div');
-        choiceDiv.className = 'flex items-center space-x-2';
+        choiceDiv.className = 'flex items-center space-x-2 mb-2';
         choiceDiv.innerHTML = `
-            <input type="text" name="questions[${questionIndex}][choices][]" 
-                   placeholder="選択肢" required
+            <input type="text" 
+                   name="questions[${questionIndex}][choices][]" 
+                   placeholder="選択肢" 
+                   required
                    class="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <button type="button" class="text-red-500 hover:text-red-700 transition-colors duration-200 remove-choice">
                 <i class="fas fa-times"></i>
             </button>
         `;
         
+        // 削除ボタンのイベントリスナーを設定
         choiceDiv.querySelector('.remove-choice').addEventListener('click', function() {
             if (choicesList.children.length > 2) {
                 choiceDiv.remove();
             } else {
-                alert('最低2つの選択肢が必要です');
+                alert('最低2つの選択肢が必��です');
             }
         });
         
         choicesList.appendChild(choiceDiv);
     }
 
-    // 質問番号を更新する関数
-    function updateQuestionNumbers() {
-        const questions = questionsContainer.querySelectorAll('.question-card');
-        questions.forEach((question, index) => {
-            question.querySelector('.question-number').textContent = index + 1;
+    // 既存の質問の選択肢追加ボタンにイベントリスナーを設定
+    document.querySelectorAll('.add-choice').forEach((button, index) => {
+        button.addEventListener('click', function() {
+            const choicesList = this.closest('.choices-container').querySelector('.choices-list');
+            addChoice(choicesList, index);
         });
-        questionCount = questions.length;
-    }
+    });
 
     // フォームのバリデーション
     document.getElementById('surveyForm').addEventListener('submit', function(e) {
@@ -226,6 +257,28 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('少なくとも1つの質問を追加してください');
             return;
         }
+
+        // 各質問に少なくとも2つの選択肢があることを確認
+        const questions = questionsContainer.querySelectorAll('.question-card');
+        let isValid = true;
+        questions.forEach((question, index) => {
+            const choices = question.querySelectorAll('input[name^="questions"][name$="[choices][]"]');
+            if (choices.length < 2) {
+                alert(`質問${index + 1}には最低2つの選択肢が必要です`);
+                isValid = false;
+            }
+        });
+
+        if (!isValid) return;
+        
+        // デバッグ情報
+        console.log('Submitting form with data:', {
+            questionCount,
+            questions: Array.from(questions).map(q => ({
+                text: q.querySelector('input[name$="[text]"]').value,
+                choices: Array.from(q.querySelectorAll('input[name$="[choices][]"]')).map(c => c.value)
+            }))
+        });
         
         // フォームを送信
         this.submit();

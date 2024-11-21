@@ -15,7 +15,8 @@ from .models import (
     Choice,
     Survey,
     SurveyResponse,
-    Answer
+    Answer,
+    Category
 )
 from .serializers import SurveySerializer, QuestionSerializer
 import requests, datetime, json
@@ -130,59 +131,79 @@ def vote(request, question_id):
 
 
 
-###########################
-# Google Forms APIへのリクエストをモックした処理
-@api_view(['POST'])
-@permission_classes([AllowAny])
+
+@login_required
 def create_survey(request):
-    # POSTメソッド以外の場合のエラーメッセージを追加
-    if request.method != 'POST':
-        return DRFResponse(
-            {"error": "GET method is not allowed for this endpoint. Please use POST."},
-            status=status.HTTP_405_METHOD_NOT_ALLOWED
-        )
-    
-    # POSTメソッドの場合の処理
-    serializer = SurveySerializer(data=request.data)
-    
-    if serializer.is_valid():
-        # バリデーションが成功した場合、Google Formを作成（モック）
-        survey_data = serializer.validated_data
-
-        # 以下は既存の質問データの構成整形などの処理
-        questions_data = []
-        for question in survey_data['questions']:
-            if question['question_type'] in ['single_choice', 'multiple_choice']:
-                choices = question['choices']
-                question_data = {
-                    'question_text': question['question_text'],
-                    'question_type': question['question_type'],
-                    'choices': [{"choice_text": choice} for choice in choices],
-                }
-            else:
-                question_data = {
-                    'question_text': question['question_text'],
-                    'question_type': question['question_type'],
-                }
-            questions_data.append(question_data)
-
-        survey_data['questions'] = questions_data
-
-        # Google Formをモックして作成
-        google_form_id = create_google_form_mock(survey_data)
+    if request.method == 'POST':
+        print("\n=== Survey Creation Debug ===")
+        print("POST data:", request.POST)
         
-        if google_form_id:
-            return DRFResponse({
-                'message': 'Survey created successfully!',
-                'google_form_id': google_form_id,  # モックされたGoogle FormのID
-            }, status=status.HTTP_201_CREATED)
-        else:
-            return DRFResponse({
-                'message': 'Failed to create the survey form.'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    else:
-        # バリデーションエラーが発生した場合
-        return DRFResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                # アンケートの基本情報を保存
+                survey = Survey.objects.create(
+                    title=request.POST['title'],
+                    description=request.POST.get('description', ''),
+                    start_date=request.POST['start_date'],
+                    end_date=request.POST['end_date'],
+                    required_responses=request.POST.get('required_responses', 0),
+                    status=request.POST['status'],
+                    category_id=request.POST.get('category'),
+                )
+
+                # 質問の処理
+                questions_data = {}
+                for key, value in request.POST.items():
+                    if key.startswith('questions[') and '[text]' in key:
+                        match = re.match(r'questions\[(\d+)\]\[text\]', key)
+                        if match:
+                            index = match.group(1)
+                            questions_data[index] = {
+                                'text': value,
+                                'type': request.POST.get(f'questions[{index}][type]', 'radio'),
+                                'required': request.POST.get(f'questions[{index}][required]') == 'on',
+                                'choices': request.POST.getlist(f'questions[{index}][choices][]')
+                            }
+
+                print("Processed questions data:", questions_data)
+
+                # 質問と選択肢を保存
+                for index, q_data in questions_data.items():
+                    if q_data['text'].strip():
+                        question = Question.objects.create(
+                            survey=survey,
+                            question_text=q_data['text'],
+                            question_type=q_data['type'],
+                            is_required=q_data['required'],
+                            order=int(index) + 1
+                        )
+                        
+                        # 選択肢を保存
+                        for i, choice_text in enumerate(q_data['choices'], 1):
+                            if choice_text.strip():
+                                Choice.objects.create(
+                                    question=question,
+                                    choice_text=choice_text,
+                                    order=i
+                                )
+                                print(f"Created choice: {choice_text}")
+
+                messages.success(request, 'アンケートが作成されました。')
+                return redirect('polls:index')  # インデックスページにリダイレクト
+
+        except Exception as e:
+            print(f"Error creating survey: {e}")
+            print(traceback.format_exc())  # 詳細なエラー情報を出力
+            messages.error(request, f'アンケートの作成中にエラーが発生しました: {str(e)}')
+            return render(request, 'polls/survey_create.html', {
+                'categories': Category.objects.all(),
+                'error': str(e)
+            })
+
+    # GETリクエストの場合
+    return render(request, 'polls/survey_create.html', {
+        'categories': Category.objects.all()
+    })
 
 
 @api_view(['GET'])
@@ -390,47 +411,33 @@ def survey_detail_view(request, survey_id):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def survey_detail(request, survey_id):
-    """APIビュー"""
-    try:
-        survey = Survey.objects.prefetch_related('questions__choices').get(pk=survey_id)
-        
-        questions_data = []
-        for question in survey.questions.all():
-            question_data = {
-                'id': question.id,
-                'question_text': question.question_text,
-                'question_type': question.question_type,
-                'choices': []
-            }
-            
-            if question.question_type in ['single_choice', 'multiple_choice']:
-                question_data['choices'] = [{
-                    'id': choice.id,
-                    'choice_text': choice.choice_text,
-                    'votes': choice.votes
-                } for choice in question.choices.all()]
-            
-            questions_data.append(question_data)
-        
-        survey_data = {
-            'id': survey.id,
-            'title': survey.title,
-            'description': survey.description,
-            'required_responses': survey.required_responses,
-            'current_responses': survey.current_responses,
-            'deadline': survey.deadline,
-            'status': survey.status,
-            'created_at': survey.created_at,
-            'is_entrance_survey': survey.is_entrance_survey,
-            'questions': questions_data
-        }
-        
-        return DRFResponse(survey_data)
-        
-    except Survey.DoesNotExist:
-        return DRFResponse({
-            'error': 'Survey not found'
-        }, status=status.HTTP_404_NOT_FOUND)
+    """アンケートの詳細を表示するビュー"""
+    # prefetch_relatedを使用して関連データを効率的に取得
+    survey = get_object_or_404(
+        Survey.objects.prefetch_related(
+            'questions__choices'  # 質問と選択肢を一度に取得
+        ),
+        id=survey_id
+    )
+    
+    # デバッグ情報
+    print("\n=== Survey Detail Debug ===")
+    print(f"Survey: {survey.title}")
+    print(f"Questions count: {survey.questions.count()}")
+    for question in survey.questions.all().order_by('order'):
+        print(f"\nQuestion: {question.question_text}")
+        print(f"Question Type: {question.question_type}")
+        print(f"Choices count: {question.choices.count()}")
+        for choice in question.choices.all().order_by('order'):
+            print(f"- Choice: {choice.choice_text}")
+    
+    context = {
+        'survey': survey,
+        'questions': survey.questions.all().order_by('order'),  # 質問を順序で並び替え
+        'debug': settings.DEBUG
+    }
+    
+    return render(request, 'polls/survey_detail.html', context)
 
 def survey_response_view(request, survey_id):
     survey = get_object_or_404(
