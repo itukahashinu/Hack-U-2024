@@ -156,14 +156,14 @@
                                     <div class="space-y-3">
                                         {% for choice in question.choices.all|dictsort:"order" %}
                                             <div class="flex items-center">
-                                                <input type="{{ question.question_type }}" 
-                                                       name="question_{{ question.id }}{% if question.question_type == 'checkbox' %}[]{% endif %}" 
-                                                       value="{{ choice.id }}"
-                                                       id="choice_{{ choice.id }}"
-                                                       {% if question.is_required and question.question_type == 'radio' %}required{% endif %}
-                                                       class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
-                                                <label for="choice_{{ choice.id }}" 
-                                                       class="ml-3 block text-sm font-medium text-gray-700">
+                                                <input type="{{ question.question_type }}"
+                                                    name="question_{{ question.id }}{% if question.question_type == 'checkbox' %}[]{% endif %}"
+                                                    value="{{ choice.id }}"
+                                                    id="choice_{{ choice.id }}"
+                                                    {% if question.is_required and question.question_type == 'radio' %}required{% endif %}
+                                                    class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300">
+                                                <label for="choice_{{ choice.id }}"
+                                                    class="ml-3 block text-sm font-medium text-gray-700">
                                                     {{ choice.choice_text }}
                                                 </label>
                                             </div>
