@@ -128,10 +128,6 @@ def vote(request, question_id):
         # POST-Redirect-GETパターンに従ってリダイレクト
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
 
-
-
-
-
 @login_required
 def create_survey(request):
     if request.method == 'POST':
