@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'advertisement.apps.AdvertisementConfig'
     'polls.apps.PollsConfig',
     #'entrance.apps.EntranceConfig',
     'contest.apps.ContestConfig',
