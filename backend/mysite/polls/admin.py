@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.db import models
 from .models import Survey, Question, Choice, Category, SurveyResponse, Answer
+from .models import SurveyParticipant
 
 class ChoiceInline(admin.TabularInline):
     model = Choice
@@ -101,3 +102,11 @@ class ChoiceAdmin(admin.ModelAdmin):
 admin.site.register(Category)
 admin.site.register(SurveyResponse)
 admin.site.register(Answer)
+
+
+######################################
+@admin.register(SurveyParticipant)
+class SurveyParticipantAdmin(admin.ModelAdmin):
+    list_display = ('survey', 'user', 'is_answered', 'participation_date')
+    list_filter = ('is_answered', 'survey', 'user')
+    search_fields = ('survey__title', 'user__username')

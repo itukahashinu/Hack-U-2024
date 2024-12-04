@@ -16,7 +16,8 @@ from .models import (
     Survey,
     SurveyResponse,
     Answer,
-    Category
+    Category,
+    SurveyParticipant
 )
 from .serializers import SurveySerializer, QuestionSerializer
 import requests, datetime, json
@@ -809,3 +810,20 @@ def submit_survey(request, survey_id):
         print(f"Error submitting survey: {e}")
     
     return redirect('polls:survey_detail', survey_id=survey_id)
+
+def submit_survey_response(request, survey_id):
+    try:
+        with transaction.atomic():
+            # サーベイ回答の処理
+            
+            # 参加者の状態を更新
+            SurveyParticipant.objects.filter(
+                survey_id=survey_id,
+                user=request.user
+            ).update(
+                is_answered=True,
+                participation_date=timezone.now()
+            )
+    except Exception as e:
+        # エラーハンドリング
+        pass

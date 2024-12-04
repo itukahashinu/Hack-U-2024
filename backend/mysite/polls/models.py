@@ -277,3 +277,52 @@ def create_default_choices(sender, instance, created, **kwargs):
             choice_text='選択肢 2',
             order=2
         )
+
+################################################
+
+class SurveyParticipant(models.Model):
+    """
+    サーベイ参加者の追跡モデル
+    各サーベイに対するユーザーの参加状況を管理
+    """
+    survey = models.ForeignKey(
+        Survey,
+        on_delete=models.CASCADE,
+        related_name='participants_tracking',
+        verbose_name='アンケート'
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='participated_surveys',
+        verbose_name='ユーザー'
+    )
+    is_answered = models.BooleanField(
+        default=False,
+        verbose_name='回答済みフラグ'
+    )
+    participation_date = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='参加日時'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='作成日時'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='更新日時'
+    )
+
+    class Meta:
+        unique_together = ('survey', 'user')
+        verbose_name = '回答者'
+        verbose_name_plural = '回答者一覧'
+        indexes = [
+            models.Index(fields=['user', 'is_answered']),
+            models.Index(fields=['survey', 'is_answered'])
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.survey.title}"
