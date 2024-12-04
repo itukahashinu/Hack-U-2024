@@ -811,6 +811,8 @@ def submit_survey(request, survey_id):
     
     return redirect('polls:survey_detail', survey_id=survey_id)
 
+##########################################
+
 def submit_survey_response(request, survey_id):
     try:
         with transaction.atomic():
@@ -827,3 +829,17 @@ def submit_survey_response(request, survey_id):
     except Exception as e:
         # エラーハンドリング
         pass
+
+def unanswered_surveys(request):
+    unanswered_participants = SurveyParticipant.objects.filter(
+        user=request.user,
+        is_answered=False
+    )
+    
+    unanswered_surveys = [
+        participant.survey for participant in unanswered_participants
+    ]
+
+    return render(request, 'polls/unanswered_surveys.html', {
+        'unanswered_surveys': unanswered_surveys
+    })
