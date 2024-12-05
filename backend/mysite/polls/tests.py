@@ -1,36 +1,29 @@
-import datetime
-
 from django.test import TestCase
-from django.utils import timezone
+from django.contrib.auth.models import User
+from .models import Survey, SurveyParticipant
 
-from .models import Question
+class SurveyParticipantModelTest(TestCase):
 
+    def setUp(self):
+        # テスト用のユーザーとサーベイを作成
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.survey = Survey.objects.create(title='Test Survey')
 
-class QuestionModelTests(TestCase):
-    def test_was_published_recently_with_future_question(self):
-        """
-        was_published_recently() returns False for questions whose pub_date
-        is in the future.
-        """
-        time = timezone.now() + datetime.timedelta(days=30)
-        future_question = Question(pub_date=time)
-        self.assertIs(future_question.was_published_recently(), False)
-    
-    def test_was_published_recently_with_old_question(self):
-        """
-        was_published_recently() returns False for questions whose pub_date
-        is older than 1 day.
-        """
-        time = timezone.now() - datetime.timedelta(days=1, seconds=1)
-        old_question = Question(pub_date=time)
-        self.assertIs(old_question.was_published_recently(), False)
+    def test_participant_creation(self):
+        # サーベイ参加者を作成
+        participant = SurveyParticipant.objects.create(survey=self.survey, user=self.user)
+        
+        # 参加者が正しく作成されたか確認
+        self.assertEqual(participant.survey, self.survey)
+        self.assertEqual(participant.user, self.user)
+        self.assertFalse(participant.is_answered)
 
-
-    def test_was_published_recently_with_recent_question(self):
-        """
-        was_published_recently() returns True for questions whose pub_date
-        is within the last day.
-        """
-        time = timezone.now() - datetime.timedelta(hours=23, minutes=59, seconds=59)
-        recent_question = Question(pub_date=time)
-        self.assertIs(recent_question.was_published_recently(), True)
+    def test_mark_as_completed(self):
+        # 参加者を作成
+        participant = SurveyParticipant.objects.create(survey=self.survey, user=self.user)
+        
+        # 完了処理を実行
+        participant.mark_as_completed()
+        
+        # 完了フラグがTrueになっているか確認
+        self.assertTrue(participant.is_answered)

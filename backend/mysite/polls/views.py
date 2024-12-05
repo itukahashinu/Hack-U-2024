@@ -396,11 +396,12 @@ def survey_detail_view(request, survey_id):
     survey = get_object_or_404(
         Survey.objects.prefetch_related(
             'questions__choices'
-        ), 
+        ),
         pk=survey_id
     )
     
     # デバッグ情報
+    """
     print(f"\n=== Survey Detail Debug ===")
     print(f"Survey ID: {survey.id}")
     print(f"Survey Title: {survey.title}")
@@ -408,13 +409,15 @@ def survey_detail_view(request, survey_id):
     for question in survey.questions.all():
         print(f"\nQuestion: {question.question_text}")
         print(f"Choices: {[choice.choice_text for choice in question.choices.all()]}")
-
+    """
+    
     context = {
         'survey': survey,
         'questions': survey.questions.all().order_by('order'),  # 順序で並び替え
         'can_respond': survey.status == 'active',
         'debug': settings.DEBUG  # デバッグ情報の表示用
     }
+    
     
     return render(request, 'polls/survey_detail.html', context)
 
