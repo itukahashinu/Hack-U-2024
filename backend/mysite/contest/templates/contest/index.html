@@ -56,6 +56,9 @@
                         <strong>投稿者:</strong> {{ idea.author.username }}<br>
                         <strong>内容:</strong> {{ idea.content }}<br>
                         <strong>いいね数:</strong> {{ idea.likes.count }}<br>
+                        <a href="{% url 'contest:like_idea' idea.id %}" class="btn btn-primary">
+                            いいね ({{ idea.likes.count }})
+                        </a>
                     </li>
                 {% endfor %}
             </ul>
