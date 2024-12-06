@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>アイデアを投稿</title>
 </head>
 <body>
@@ -8,9 +9,7 @@
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
-        <label for="content">内容:</label>
-        <textarea name="content" id="content" required></textarea>
         <button type="submit">投稿</button>
     </form>
 </body>
-</html> 
+</html>

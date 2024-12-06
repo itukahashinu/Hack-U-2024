@@ -32,7 +32,6 @@ def submit_idea(request):
         if form.is_valid():
             idea = form.save(commit=False)
             idea.author = request.user
-            idea.theme = request.theme
             idea.save()
             return redirect('contest:index')
     else:
