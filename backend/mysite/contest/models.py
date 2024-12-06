@@ -12,7 +12,7 @@ class Theme(models.Model):
 
 class Idea(models.Model):
     theme = models.ForeignKey(Theme, on_delete=models.CASCADE)
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

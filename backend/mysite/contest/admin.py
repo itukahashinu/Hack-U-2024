@@ -8,6 +8,6 @@ class ThemeAdmin(admin.ModelAdmin):
 
 @admin.register(Idea)
 class IdeaAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user_id', 'theme', 'created_at')
+    list_display = ('title', 'author', 'theme', 'created_at')
     search_fields = ('title', 'author__username')
     list_filter = ('theme',)

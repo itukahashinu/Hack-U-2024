@@ -8,6 +8,8 @@
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
+        <label for="content">内容:</label>
+        <textarea name="content" id="content" required></textarea>
         <button type="submit">投稿</button>
     </form>
 </body>
