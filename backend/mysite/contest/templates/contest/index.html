@@ -7,7 +7,7 @@
         <h1 class="text-4xl font-bold mb-4">アイデアコンテスト</h1>
         <p class="text-xl opacity-90">新しいアイデアを共有し、評価しあおう</p>
         <a href="{% url 'contest:submit_idea' %}" class="inline-flex items-center px-4 py-2 bg-white text-blue-600 rounded-md font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
-            作成
+            新しいアイデアを投稿
         </a>  <!-- 作成ボタン -->
     </div>
 </div>
@@ -45,7 +45,7 @@
         
         <h4>{{ theme.title }}</h4>
         <p>{{ theme.description }}</p>
-        
+
         {% if theme.idea_set.all %}
         
             <ul>
