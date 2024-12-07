@@ -9,12 +9,12 @@
             <p class="text-xl opacity-90 mb-8">簡単に作成、共有、回答できるアンケートプラットフォーム</p>
             {% if user.is_authenticated %}
                 <a href="{% url 'polls:survey_create' %}"
-                   class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
+                    class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
                     <i class="fas fa-plus mr-2"></i>新規アンケート作成
                 </a>
             {% else %}
                 <a href="{% url 'signup' %}"
-                   class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
+                    class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
                     <i class="fas fa-user-plus mr-2"></i>会員登録してアンケートを作成
                 </a>
             {% endif %}
@@ -27,7 +27,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="relative">
                     <input type="text" id="searchInput" placeholder="アンケートを検索..."
-                           class="w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            class="w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <select id="categorySelect"
@@ -59,22 +59,22 @@
         <div id="surveyList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for survey in surveys %}
             <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-all duration-200"
-                 data-participants="{{ survey.participants|default:0 }}"
-                 data-created="{{ survey.created_at|date:'Y-m-d' }}"
-                 data-days-left="{{ survey.days_left }}"
-                 data-responses="{{ survey.current_responses }}">
+                data-participants="{{ survey.participants|default:0 }}"
+                data-created="{{ survey.created_at|date:'Y-m-d' }}"
+                data-days-left="{{ survey.days_left }}"
+                data-responses="{{ survey.current_responses }}">
                 <a href="{% url 'polls:survey_detail' survey.id %}">
                     <div class="relative">
                         {% if survey.image %}
                             <img src="{{ survey.image.url }}" alt="{{ survey.title }}"
-                                 class="w-full h-48 object-cover">
+                                class="w-full h-48 object-cover">
                         {% else %}
                             <div class="w-full h-48 bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
                                 <i class="fas fa-poll text-blue-400 text-4xl"></i>
                             </div>
                         {% endif %}
                         <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-sm font-medium
-                                  {% if survey.status == 'active' %}text-green-600{% else %}text-red-600{% endif %}">
+                                {% if survey.status == 'active' %}text-green-600{% else %}text-red-600{% endif %}">
                             {{ survey.status|title }}
                         </div>
                     </div>
@@ -96,7 +96,7 @@
                         <div class="space-y-3">
                             <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
                                 <div class="bg-blue-500 h-full rounded-full transition-all duration-300"
-                                     style="width: {{ survey.progress|default:0 }}%"></div>
+                                    style="width: {{ survey.progress|default:0 }}%"></div>
                             </div>
                             <div class="flex justify-between text-sm">
                                 <span class="font-medium text-blue-600">{{ survey.progress|default:0 }}% 完了</span>
@@ -122,7 +122,7 @@
                         </span>
                     </div>
                     <a href="{% url 'polls:survey_detail' survey.id %}"
-                       class="text-blue-600 hover:text-blue-800 font-medium">
+                        class="text-blue-600 hover:text-blue-800 font-medium">
                         詳細を見る →
                     </a>
                 </div>
@@ -135,5 +135,26 @@
 
     <script>
         // 既存のJavaScriptコードを維持
+        let sortElemnt = document.getElementById("sortSelect")
+        if (sortElemnt.value == "popular")
+        {
+            //Write popular-sort-program.
+        }
+        else if (sortElemnt.value == "new")
+        {
+            //Write new-sort-program.
+        }
+        else if (sortElemnt.value == "endingSoon")
+        {
+            //Write endingSoon-sort-program.
+        }
+        else if (sortElemnt.value == "mostResponses")
+        {
+            //Write mostResponses-sort-program.
+        }
+        else
+        {
+            //exception
+        }
     </script>
 {% endblock %}
