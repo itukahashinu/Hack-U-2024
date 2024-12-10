@@ -1,0 +1,38 @@
+<!-- advertisement/ad_list.html または適切なテンプレートファイル -->
+<button onclick="showSurveys()">未回答のアンケートを表示</button>
+
+<div id="popup" style="display:none;">
+    <div id="popup-content">
+        <span onclick="closePopup()" style="cursor:pointer;">&times; 閉じる</span>
+        <div id="survey-container"></div>
+    </div>
+</div>
+
+<script>
+function showSurveys() {
+    document.getElementById('popup').style.display = 'block';
+    // AJAXリクエストで未回答のアンケートを取得
+    fetch('/surveys/active/')  // 上記で作成したビューのURLを設定
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('survey-container');
+            container.innerHTML = '';  // 既存の内容をクリア
+            data.forEach(survey => {
+                const surveyDiv = document.createElement('div');
+                surveyDiv.innerHTML = `<h2>${survey.title}</h2><p>${survey.description}</p>`;
+                // 質問を追加
+                survey.questions.forEach(question => {
+                    surveyDiv.innerHTML += `<p>${question.text}</p>`;
+                    question.choices.forEach(choice => {
+                        surveyDiv.innerHTML += `<label><input type="radio" name="question_${question.id}" value="${choice.id}">${choice.text}</label><br>`;
+                    });
+                });
+                container.appendChild(surveyDiv);
+            });
+        });
+}
+
+function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+}
+</script>

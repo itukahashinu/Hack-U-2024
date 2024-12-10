@@ -12,12 +12,23 @@
                     class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
                     <i class="fas fa-plus mr-2"></i>新規アンケート作成
                 </a>
+                <button onclick="showUnansweredSurveys()"
+                    class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ml-4">
+                    <i class="fas fa-eye mr-2"></i>ポップアップ表示
+                </button>
             {% else %}
                 <a href="{% url 'signup' %}"
                     class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
                     <i class="fas fa-user-plus mr-2"></i>会員登録してアンケートを作成
                 </a>
             {% endif %}
+        </div>
+    </div>
+
+    <div id="popup" style="display:none;">
+        <div id="popup-content">
+            <span onclick="closePopup()" style="cursor:pointer;">&times; 閉じる</span>
+            <div id="survey-container"></div>
         </div>
     </div>
 
@@ -156,5 +167,61 @@
         {
             //exception
         }
+
+        function showUnansweredSurveys() {
+            document.getElementById('popup').style.display = 'block';
+            // AJAXリクエストで未回答のアンケートを取得
+            fetch('/surveys/active/')  // 未回答のアンケートを取得するURL
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('survey-container');
+                    container.innerHTML = '';  // 既存の内容をクリア
+                    data.forEach(survey => {
+                        const surveyDiv = document.createElement('div');
+                        surveyDiv.innerHTML = `<h2>${survey.title}</h2><p>${survey.description}</p>`;
+                        // 質問を追加
+                        survey.questions.forEach(question => {
+                            surveyDiv.innerHTML += `<p>${question.text}</p>`;
+                            question.choices.forEach(choice => {
+                                surveyDiv.innerHTML += `<label><input type="radio" name="question_${question.id}" value="${choice.id}">${choice.text}</label><br>`;
+                            });
+                        });
+                        container.appendChild(surveyDiv);
+                    });
+                });
+        }
+
+        function closePopup() {
+            document.getElementById('popup').style.display = 'none';
+        }
     </script>
+
+    <style>
+    #popup {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 20px;
+        z-index: 1000;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #popup-content {
+        position: relative;
+    }
+
+    #popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        z-index: 999;
+    }
+    </style>
 {% endblock %}

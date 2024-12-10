@@ -31,7 +31,7 @@ def create_google_form_mock(survey_data):
     """
     Google Forms APIのモック関数
     """
-    # 既存のデバッグ出力を強化
+    # 既存の���バッグ出力を強化
     print("\n=== Google Form Creation Debug Log ===")
     print("Timestamp:", datetime.datetime.now())
     print("\nReceived Survey Data:")
@@ -186,7 +186,7 @@ def create_survey(request):
                                 print(f"Created choice: {choice_text}")
 
                 messages.success(request, 'アンケートが作成されました。')
-                return redirect('polls:index')  # インデックスページにリダイレクト
+                return redirect('polls:index')  # インデックスペー���にリダイレクト
 
         except Exception as e:
             print(f"Error creating survey: {e}")
@@ -223,7 +223,7 @@ class SurveyViewSet(viewsets.ModelViewSet):
         """Google Formを作成するアクション"""
         survey = self.get_object()
         try:
-            # Google Form APIのモック関数を呼び出し
+            # Google Form APIのモック関数��呼び出し
             form_id = create_google_form_mock(survey)
             survey.google_form_id = form_id
             survey.save()
@@ -392,32 +392,23 @@ def survey_list(request):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def survey_detail_view(request, survey_id):
-    # prefetch_relatedを使用して関連する質問と選択肢を効率的に取得
     survey = get_object_or_404(
-        Survey.objects.prefetch_related(
-            'questions__choices'
-        ),
+        Survey.objects.prefetch_related('questions__choices'),
         pk=survey_id
     )
     
-    # デバッグ情報
-    """
-    print(f"\n=== Survey Detail Debug ===")
-    print(f"Survey ID: {survey.id}")
-    print(f"Survey Title: {survey.title}")
-    print(f"Questions count: {survey.questions.count()}")
-    for question in survey.questions.all():
-        print(f"\nQuestion: {question.question_text}")
-        print(f"Choices: {[choice.choice_text for choice in question.choices.all()]}")
-    """
-    
+    # 自分が参加者かどうかをチェック
+    is_participant = SurveyParticipant.objects.filter(
+        survey=survey,
+        user=request.user
+    ).exists()
+
     context = {
         'survey': survey,
         'questions': survey.questions.all().order_by('order'),  # 順序で並び替え
-        'can_respond': survey.status == 'active',
+        'can_respond': survey.status == 'active' and not is_participant,
         'debug': settings.DEBUG  # デバッグ情報の表示用
     }
-    
     
     return render(request, 'polls/survey_detail.html', context)
 
@@ -505,7 +496,7 @@ def submit_survey_response(request, survey_id):
             print(f"Received response data for survey {survey_id}:")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 
-            # アンケートの取得
+            # アンケ��トの取得
             survey = get_object_or_404(Survey, pk=survey_id)
             
             # アンケートのステータスチェック
@@ -834,15 +825,41 @@ def submit_survey_response(request, survey_id):
         pass
 
 def unanswered_surveys(request):
-    unanswered_participants = SurveyParticipant.objects.filter(
-        user=request.user,
-        is_answered=False
-    )
-    
-    unanswered_surveys = [
-        participant.survey for participant in unanswered_participants
-    ]
+    # 現在のユーザーが未回答の進行中のアンケートを取得
+    unanswered_surveys = Survey.objects.filter(
+        id__in=SurveyParticipant.objects.filter(
+            user=request.user,
+            is_answered=False
+        ).values_list('survey_id', flat=True),
+        status='active'  # ステータスが進行中のアンケート
+    ).distinct()  # 重複を排除
 
     return render(request, 'polls/unanswered_surveys.html', {
         'unanswered_surveys': unanswered_surveys
     })
+
+def get_active_surveys(request):
+    # 現在のユーザーが未回答かつ回答可能なアンケートを取得
+    unanswered_surveys = Survey.objects.filter(
+        participants_tracking__user=request.user,
+        participants_tracking__is_answered=False,
+        status='active'  # ステータスが進行中のアンケート
+    ).distinct()
+
+    # アンケートの情報をJSON形式で返す
+    surveys_data = [{
+        'id': survey.id,
+        'title': survey.title,
+        'description': survey.description,
+        'questions': [{
+            'id': question.id,
+            'text': question.question_text,
+            'type': question.question_type,
+            'choices': [{
+                'id': choice.id,
+                'text': choice.choice_text
+            } for choice in question.get_choices()]
+        } for question in survey.get_questions()]
+    } for survey in unanswered_surveys]
+
+    return JsonResponse(surveys_data, safe=False)
