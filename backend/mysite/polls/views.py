@@ -860,23 +860,27 @@ def unanswered_surveys(request):
         'unanswered_surveys': unanswered_surveys
     })
 
-@permission_classes([AllowAny])
-#これにすることで非ログインユーザにも適応される！！
+@login_required
 def get_active_surveys(request):
     """現在のユーザーが未回答かつ進行中のアンケートを取得するAPI"""
-    try:
-        # 現在のユーザーが未回答かつ進行中のアンケートを取得
-        unanswered_surveys = Survey.objects.filter(
-            participants_tracking__user=request.user,
-            participants_tracking__is_answered=False,
-            status='active'  # ステータスが進行中のアンケート
-        ).distinct()
+    unanswered_surveys = Survey.objects.filter(
+        participants_tracking__user=request.user,
+        participants_tracking__is_answered=False,
+        status='active'  # ステータスが進行中のアンケート
+    ).distinct()
 
-        # アンケートの情報をJSON形式で返す
-        surveys_data = [{
-            'id': survey.id,
-            'title': survey.title,
-            'description': survey.description,
+    # 最も古いアンケートを選択するロジックをここに統合
+    if not unanswered_surveys:
+        return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
+
+    selected_survey = min(unanswered_surveys, key=lambda survey: survey.created_at)  # 最も古い作成日時のアンケートを返す
+
+    if selected_survey:
+        # 選択されたアンケートの情報をJSON形式で返す
+        survey_data = {
+            'id': selected_survey.id,
+            'title': selected_survey.title,
+            'description': selected_survey.description,
             'questions': [{
                 'id': question.id,
                 'text': question.question_text,
@@ -885,10 +889,8 @@ def get_active_surveys(request):
                     'id': choice.id,
                     'text': choice.choice_text
                 } for choice in question.get_choices()]
-            } for question in survey.get_questions()]
-        } for survey in unanswered_surveys]
-
-        return JsonResponse(surveys_data, safe=False)
-
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+            } for question in selected_survey.get_questions()]
+        }
+        return JsonResponse(survey_data, safe=False)
+    else:
+        return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
