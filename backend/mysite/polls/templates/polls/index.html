@@ -26,15 +26,22 @@
         <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="relative">
-                    <input type="text" id="searchInput" placeholder="アンケートを検索..."
-                            class="w-full pl-12 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" 
+                           id="searchInput" 
+                           placeholder="アンケートを検索..." 
+                           value="{{ search_query }}"
+                           class="w-full pl-3 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           style="text-align: left;">
                     <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <select id="categorySelect"
                         class="w-full py-3 px-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="all">すべてのカテゴリー</option>
                     {% for category in categories %}
-                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        <option value="{{ category.id }}" 
+                                {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
                     {% endfor %}
                 </select>
                 <select id="sortSelect"
@@ -156,5 +163,43 @@
         {
             //exception
         }
+
+         // 検索とフィルタリングの処理
+        function updateSearch() {
+            const searchQuery = document.getElementById('searchInput').value;
+            const categoryId = document.getElementById('categorySelect').value;
+            
+            // URLパラメータの構築
+            const params = new URLSearchParams();
+            if (searchQuery) params.set('q', searchQuery);
+            if (categoryId !== 'all') params.set('category', categoryId);
+            
+            // ページをリロード
+            window.location.href = `${window.location.pathname}?${params.toString()}`;
+        }
+
+        // イベントリスナーの設定
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            // Enterキーが押されたら検索を実行
+            if (e.key === 'Enter') {
+                updateSearch();
+            }
+        });
+
+        document.getElementById('categorySelect').addEventListener('change', updateSearch);
+
+        // 検索フォームの初期値を設定
+        window.addEventListener('load', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('q');
+            const category = urlParams.get('category');
+
+            if (searchQuery) {
+                document.getElementById('searchInput').value = searchQuery;
+            }
+            if (category) {
+                document.getElementById('categorySelect').value = category;
+            }
+        });
     </script>
 {% endblock %}
