@@ -179,7 +179,7 @@
         function showUnansweredSurveys() {
             document.getElementById('popup').style.display = 'block';
             // AJAXリクエストで未回答のアンケートを取得
-            fetch('/polls/get_active_surveys/')  // 未回答のアンケートを取得するURL
+            fetch('/get_active_surveys/')  // 未回答のアンケートを取得するURL
                 .then(response => {
                     console.log('Response:', response);  // レスポンスを確認
                     if (!response.ok) {

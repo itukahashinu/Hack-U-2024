@@ -163,10 +163,6 @@ class Question(models.Model):
         ordering = ['survey', 'order']
 
     def save(self, *args, **kwargs):
-        # デバッグ情報を追加
-        print(f"\nSaving Question: {self.question_text}")
-        print(f"Survey: {self.survey.title}")
-        print(f"Choices count: {self.choices.count() if self.pk else 0}")
         super().save(*args, **kwargs)
 
     def get_choices(self):
@@ -210,9 +206,7 @@ class Choice(models.Model):
         ordering = ['question', 'order']
 
     def save(self, *args, **kwargs):
-        # デバッグ情報を追加
-        print(f"\nSaving Choice: {self.choice_text}")
-        print(f"Question: {self.question.question_text}")
+
         super().save(*args, **kwargs)
 
 class SurveyResponse(models.Model):
