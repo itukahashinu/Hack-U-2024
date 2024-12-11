@@ -297,6 +297,10 @@ class SurveyParticipant(models.Model):
         related_name='participated_surveys',
         verbose_name='ユーザー'
     )
+    choice_id = models.IntegerField(
+        default=0,
+        verbose_name='選択肢ID'
+    )
     is_answered = models.BooleanField(
         default=False,
         verbose_name='回答済みフラグ'
