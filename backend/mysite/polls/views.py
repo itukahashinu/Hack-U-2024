@@ -846,32 +846,23 @@ def submit_survey_response(request, survey_id):
         # エラーハンドリング
         pass
 
-def unanswered_surveys(request):
-    # 現在のユーザーが未回答の進行中のアンケートを取得
-    unanswered_surveys = Survey.objects.filter(
-        id__in=SurveyParticipant.objects.filter(
-            user=request.user,
-            is_answered=False
-        ).values_list('survey_id', flat=True),
-        status='active'  # ステータスが進行中のアンケート
-    ).distinct()  # 重複を排除
-
-    return render(request, 'polls/unanswered_surveys.html', {
-        'unanswered_surveys': unanswered_surveys
-    })
-
 @login_required
 def get_active_surveys(request):
-    """現在のユーザーが未回答かつ進行中のアンケートを取得するAPI"""
+    """現在のユーザーが未回答かつ進行中のアンケートを取得するAPIまたはHTMLを返す"""
     unanswered_surveys = Survey.objects.filter(
         participants_tracking__user=request.user,
         participants_tracking__is_answered=False,
         status='active'  # ステータスが進行中のアンケート
     ).distinct()
 
-    # 最も古いアンケートを選択するロジックをここに統合
+    # 最も古いアンケートを選択するロジック
     if not unanswered_surveys:
-        return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
+        if request.is_ajax():  # AJAXリクエストの場合
+            return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
+        else:  # 通常のリクエストの場合
+            return render(request, 'polls/unanswered_surveys.html', {
+                'unanswered_surveys': []
+            })
 
     selected_survey = min(unanswered_surveys, key=lambda survey: survey.created_at)  # 最も古い作成日時のアンケートを返す
 
@@ -891,6 +882,12 @@ def get_active_surveys(request):
                 } for choice in question.get_choices()]
             } for question in selected_survey.get_questions()]
         }
-        return JsonResponse(survey_data, safe=False)
-    else:
-        return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
+        
+        if request.is_ajax():  # AJAXリクエストの場合
+            return JsonResponse(survey_data, safe=False)
+        else:  # 通常のリクエストの場合
+            return render(request, 'polls/unanswered_surveys.html', {
+                'unanswered_surveys': [selected_survey]  # 選択されたアンケートを渡す
+            })
+
+    return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
