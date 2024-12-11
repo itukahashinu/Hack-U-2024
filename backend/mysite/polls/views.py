@@ -208,7 +208,7 @@ def create_survey(request):
                                 print(f"Created choice: {choice_text}")
 
                 messages.success(request, 'アンケートが作成されました。')
-                return redirect('polls:index')  # インデックスペー���にリダイレクト
+                return redirect('polls:index')  # インデックスペーにリダイレクト
 
         except Exception as e:
             print(f"Error creating survey: {e}")
@@ -860,28 +860,35 @@ def unanswered_surveys(request):
         'unanswered_surveys': unanswered_surveys
     })
 
+@permission_classes([AllowAny])
+#これにすることで非ログインユーザにも適応される！！
 def get_active_surveys(request):
-    # 現在のユーザーが未回答かつ回答可能なアンケートを取得
-    unanswered_surveys = Survey.objects.filter(
-        participants_tracking__user=request.user,
-        participants_tracking__is_answered=False,
-        status='active'  # ステータスが進行中のアンケート
-    ).distinct()
+    """現在のユーザーが未回答かつ進行中のアンケートを取得するAPI"""
+    try:
+        # 現在のユーザーが未回答かつ進行中のアンケートを取得
+        unanswered_surveys = Survey.objects.filter(
+            participants_tracking__user=request.user,
+            participants_tracking__is_answered=False,
+            status='active'  # ステータスが進行中のアンケート
+        ).distinct()
 
-    # アンケートの情報をJSON形式で返す
-    surveys_data = [{
-        'id': survey.id,
-        'title': survey.title,
-        'description': survey.description,
-        'questions': [{
-            'id': question.id,
-            'text': question.question_text,
-            'type': question.question_type,
-            'choices': [{
-                'id': choice.id,
-                'text': choice.choice_text
-            } for choice in question.get_choices()]
-        } for question in survey.get_questions()]
-    } for survey in unanswered_surveys]
+        # アンケートの情報をJSON形式で返す
+        surveys_data = [{
+            'id': survey.id,
+            'title': survey.title,
+            'description': survey.description,
+            'questions': [{
+                'id': question.id,
+                'text': question.question_text,
+                'type': question.question_type,
+                'choices': [{
+                    'id': choice.id,
+                    'text': choice.choice_text
+                } for choice in question.get_choices()]
+            } for question in survey.get_questions()]
+        } for survey in unanswered_surveys]
 
-    return JsonResponse(surveys_data, safe=False)
+        return JsonResponse(surveys_data, safe=False)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
