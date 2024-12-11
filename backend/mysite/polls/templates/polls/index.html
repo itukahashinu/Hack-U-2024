@@ -38,11 +38,11 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="relative">
                     <input type="text" 
-                           id="searchInput" 
-                           placeholder="アンケートを検索..." 
-                           value="{{ search_query }}"
-                           class="w-full pl-3 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                           style="text-align: left;">
+                            id="searchInput" 
+                            placeholder="アンケートを検索..." 
+                            value="{{ search_query }}"
+                            class="w-full pl-3 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            style="text-align: left;">
                     <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <select id="categorySelect"
@@ -57,10 +57,9 @@
                 </select>
                 <select id="sortSelect"
                         class="w-full py-3 px-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="popular">人気順</option>
-                    <option value="new">新着順</option>
-                    <option value="endingSoon">終了が近い順</option>
-                    <option value="mostResponses">回答数順</option>
+                    <option value="-start_date">新着順</option>
+                    <option value="-end_date">終了が近い順</option>
+                    <option value="-current_responses">回答数順</option>
                 </select>
             </div>
         </div>
@@ -153,27 +152,6 @@
 
     <script>
         // 既存のJavaScriptコードを維持
-        let sortElemnt = document.getElementById("sortSelect")
-        if (sortElemnt.value == "popular")
-        {
-            //Write popular-sort-program.
-        }
-        else if (sortElemnt.value == "new")
-        {
-            //Write new-sort-program.
-        }
-        else if (sortElemnt.value == "endingSoon")
-        {
-            //Write endingSoon-sort-program.
-        }
-        else if (sortElemnt.value == "mostResponses")
-        {
-            //Write mostResponses-sort-program.
-        }
-        else
-        {
-            //exception
-        }
 
         function showUnansweredSurveys() {
             document.getElementById('popup').style.display = 'block';
@@ -205,11 +183,13 @@
         function updateSearch() {
             const searchQuery = document.getElementById('searchInput').value;
             const categoryId = document.getElementById('categorySelect').value;
+            const sortID = document.getElementById('sortSelect').value;
             
             // URLパラメータの構築
             const params = new URLSearchParams();
             if (searchQuery) params.set('q', searchQuery);
             if (categoryId !== 'all') params.set('category', categoryId);
+            if (sortID !== '-start_date') params.set('sort', sortID);
             
             // ページをリロード
             window.location.href = `${window.location.pathname}?${params.toString()}`;
@@ -224,18 +204,23 @@
         });
 
         document.getElementById('categorySelect').addEventListener('change', updateSearch);
+        document.getElementById('sortSelect').addEventListener('change', updateSearch);
 
         // 検索フォームの初期値を設定
         window.addEventListener('load', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const searchQuery = urlParams.get('q');
             const category = urlParams.get('category');
+            const sort = urlParams.get('sort');
 
             if (searchQuery) {
                 document.getElementById('searchInput').value = searchQuery;
             }
             if (category) {
                 document.getElementById('categorySelect').value = category;
+            }
+            if (sort) {
+                document.getElementById('sortSelect').value = sort;
             }
         });
 
