@@ -190,7 +190,7 @@
             const params = new URLSearchParams();
             if (searchQuery) params.set('q', searchQuery);
             if (categoryId !== 'all') params.set('category', categoryId);
-            if (sortID !== 'new') params.set('sort', sortID);
+            if (sortID !== '-start_date') params.set('sort', sortID);
             
             // ページをリロード
             window.location.href = `${window.location.pathname}?${params.toString()}`;
