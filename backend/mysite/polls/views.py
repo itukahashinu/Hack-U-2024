@@ -59,10 +59,13 @@ def index(request):
     # パラメーターの取得
     search_query = request.GET.get('q', '')
     category_id = request.GET.get('category', '')
-    sort_by = request.GET.get('sort', 'new')  # ソート条件の取得
+    sort_by = request.GET.get('sort', '-start_date')  # ソート条件の取得
     
-        # Surveyモデルから全てのデータを取得（最新順）
-    surveys = Survey.objects.prefetch_related('questions__choices').order_by('-created_at')
+    # Surveyモデルから全てのデータを取得（sort_byで指定した順）
+    if sort_by == "-created_at" or sort_by == "-start_date" or sort_by == "-current_responses":
+        surveys = Survey.objects.prefetch_related('questions__choices').order_by(sort_by)
+    elif sort_by == "-end_date":
+        surveys = Survey.objects.prefetch_related('questions__choices').order_by(sort_by).reverse()
     
     # デバッグ情報
     print("\n=== Debug Information ===")
@@ -73,10 +76,17 @@ def index(request):
         for question in survey.questions.all():
             print(f"- Question: {question.question_text}")
             print(f"  Choices: {[c.choice_text for c in question.choices.all()]}")
-    surveys = Survey.objects.prefetch_related(
-        'questions__choices',
-        'responses__answers__selected_choices'
-    ).order_by('-created_at')
+    
+    if sort_by == "-created_at" or sort_by == "-start_date" or sort_by == "-current_responses":
+        surveys = Survey.objects.prefetch_related(
+            'questions__choices',
+            'responses__answers__selected_choices'
+        ).order_by(sort_by)
+    elif sort_by == "-end_date":
+        surveys = Survey.objects.prefetch_related(
+            'questions__choices',
+            'responses__answers__selected_choices'
+        ).order_by(sort_by).reverse()
     
     # 検索クエリがある場合、フィルタリング
     if search_query:
