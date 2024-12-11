@@ -305,10 +305,6 @@ class SurveyParticipant(models.Model):
         default=False,
         verbose_name='回答済みフラグ'
     )
-    is_answered = models.BooleanField(
-        default=False,
-        verbose_name='回答済みフラグ'
-    )
     participation_date = models.DateTimeField(
         null=True,
         blank=True,
