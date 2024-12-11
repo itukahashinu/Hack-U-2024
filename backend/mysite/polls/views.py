@@ -1,7 +1,7 @@
 from django.http import HttpResponseRedirect, Http404, JsonResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
-from django.db import transaction
+from django.db import transaction, models
 from django.db.models import F
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
@@ -26,6 +26,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 import re
+from django.db.models import Q
 
 def create_google_form_mock(survey_data):
     """
@@ -55,6 +56,11 @@ def create_google_form_mock(survey_data):
     return mock_form_id
 
 def index(request):
+    # パラメーターの取得
+    search_query = request.GET.get('q', '')
+    category_id = request.GET.get('category', '')
+    sort_by = request.GET.get('sort', 'new')  # ソート条件の取得
+    
         # Surveyモデルから全てのデータを取得（最新順）
     surveys = Survey.objects.prefetch_related('questions__choices').order_by('-created_at')
     
@@ -72,8 +78,24 @@ def index(request):
         'responses__answers__selected_choices'
     ).order_by('-created_at')
     
+    # 検索クエリがある場合、フィルタリング
+    if search_query:
+        surveys = surveys.filter(
+            Q(title__icontains=search_query) |          # タイトル
+            Q(description__icontains=search_query) |    # 説明文
+            Q(category__name__icontains=search_query)   # カテゴリー名
+        ).distinct()
+    
+    # カテゴリーでフィルタリング
+    if category_id and category_id != 'all':
+        surveys = surveys.filter(category_id=category_id)
+    
     return render(request, 'polls/index.html', {
         'surveys': surveys,
+        'categories': Category.objects.all(),
+        'search_query': search_query,
+        'selected_category': category_id,
+        'sort_by': sort_by,
         'debug': settings.DEBUG,
         'user': request.user,
     })
@@ -419,7 +441,7 @@ def survey_detail(request, survey_id):
     # prefetch_relatedを使用して関連データを効率的に取得
     survey = get_object_or_404(
         Survey.objects.prefetch_related(
-            'questions__choices'  # 質問と選択肢を一度に取得
+            'questions__choices'  # 質問と選択  を一度に取得
         ),
         id=survey_id
     )
@@ -593,7 +615,7 @@ def survey_create_view(request):
                         order=q_data['order']
                     )
                     
-                    # 選択肢を保存
+                    # 選  肢を保存
                     for i, choice_text in enumerate(q_data['choices']):
                         Choice.objects.create(
                             question=question,
@@ -728,7 +750,7 @@ def survey_create(request):
                     is_required=True
                 )
                 
-                # この質問の選択肢を保存
+                #    の質問の選択肢を保存
                 q_choices = choices.get(q['index'], [])
                 for choice_text in q_choices:
                     Choice.objects.create(
