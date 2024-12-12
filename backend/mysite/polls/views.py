@@ -28,32 +28,7 @@ from django.utils import timezone
 import re
 from django.db.models import Q
 
-def create_google_form_mock(survey_data):
-    """
-    Google Forms APIのモック関数
-    """
-    # 既存の���バッグ出力を強化
-    print("\n=== Google Form Creation Debug Log ===")
-    print("Timestamp:", datetime.datetime.now())
-    print("\nReceived Survey Data:")
-    print(f"Title: {survey_data.get('title', 'Untitled Survey')}")
-    print(f"Description: {survey_data.get('description', '')}")
-    
-    # 質問データの詳細なログ
-    if 'questions' in survey_data:
-        print("\nQuestions Details:")
-        for i, question in enumerate(survey_data['questions'], 1):
-            print(f"\nQuestion {i}:")
-            print(f"Text: {question.get('question_text', '')}")
-            print(f"Type: {question.get('question_type', '')}")
-            if 'choices' in question:
-                print("Choices:", [choice.get('choice_text', '') for choice in question['choices']])
 
-    mock_form_id = f"mock_form_{hash(str(survey_data))}"
-    print(f"\nGenerated Form ID: {mock_form_id}")
-    print("=== End of Debug Log ===\n")
-    
-    return mock_form_id
 
 def index(request):
     # パラメーターの取得
@@ -245,7 +220,7 @@ class SurveyViewSet(viewsets.ModelViewSet):
         """Google Formを作成するアクション"""
         survey = self.get_object()
         try:
-            # Google Form APIのモック関数��呼び出し
+            # Google Form APIのモック関数呼び出し
             form_id = create_google_form_mock(survey)
             survey.google_form_id = form_id
             survey.save()
@@ -518,7 +493,7 @@ def submit_survey_response(request, survey_id):
             print(f"Received response data for survey {survey_id}:")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 
-            # アンケ��トの取得
+            # アンケートの取得
             survey = get_object_or_404(Survey, pk=survey_id)
             
             # アンケートのステータスチェック
@@ -714,7 +689,7 @@ def survey_create(request):
             status=request.POST.get('status', 'active')
         )
 
-        # POSTデータから質問と選択肢を取得
+        # POSTデ��タから質問と選択肢を取得
         questions = []
         choices = {}
         
@@ -855,13 +830,16 @@ def get_active_surveys(request):
         status='active'  # ステータスが進行中のアンケート
     ).distinct()
 
+    # AJAXリクエストかどうかをヘッダーで判定
+    is_ajax_request = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
     # 最も古いアンケートを選択するロジック
     if not unanswered_surveys:
-        if request.is_ajax():  # AJAXリクエストの場合
+        if is_ajax_request:  # AJAXリクエストの場合
             return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
         else:  # 通常のリクエストの場合
-            return render(request, 'polls/unanswered_surveys.html', {
-                'unanswered_surveys': []
+            return render(request, 'polls/index.html', {
+                'index': []
             })
 
     selected_survey = min(unanswered_surveys, key=lambda survey: survey.created_at)  # 最も古い作成日時のアンケートを返す
@@ -883,11 +861,11 @@ def get_active_surveys(request):
             } for question in selected_survey.get_questions()]
         }
         
-        if request.is_ajax():  # AJAXリクエストの場合
+        if is_ajax_request:  # AJAXリクエストの場合
             return JsonResponse(survey_data, safe=False)
         else:  # 通常のリクエストの場合
-            return render(request, 'polls/unanswered_surveys.html', {
-                'unanswered_surveys': [selected_survey]  # 選択されたアンケートを渡す
+            return render(request, 'polls/index.html', {
+                'index': [selected_survey]  # 選択されたアンケートを渡す
             })
 
     return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
