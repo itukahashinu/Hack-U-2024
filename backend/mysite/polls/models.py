@@ -58,6 +58,13 @@ class Survey(models.Model):
         blank=True,
         verbose_name='Survey image'
     )
+    creator = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='surveys_created',
+        verbose_name='Creator',
+        null=True
+    )
 
     @property
     def progress(self):
