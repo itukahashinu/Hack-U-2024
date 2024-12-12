@@ -822,7 +822,9 @@ def get_active_surveys(request):
         participants_tracking__is_answered=False,
         status='active'  # ステータスが進行中のアンケート
     ).distinct()
-
+    
+    print("あああ:",end="")
+    print(unanswered_surveys)
     # AJAXリクエストかどうかをヘッダーで判定
     is_ajax_request = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
@@ -837,6 +839,8 @@ def get_active_surveys(request):
 
     selected_survey = min(unanswered_surveys, key=lambda survey: survey.created_at)  # 最も古い作成日時のアンケートを返す
 
+    print("いいい:",end="")
+    print(selected_survey)
     if selected_survey:
         # 選択されたアンケートの情報をJSON形式で返す
         survey_data = {
@@ -854,6 +858,8 @@ def get_active_surveys(request):
             } for question in selected_survey.get_questions()]
         }
         
+        print("ううう:",end="")
+        print(survey_data)
         if is_ajax_request:  # AJAXリクエストの場合
             return JsonResponse(survey_data, safe=False)
         else:  # 通常のリクエストの場合
