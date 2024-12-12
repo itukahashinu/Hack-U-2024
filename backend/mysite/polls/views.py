@@ -861,8 +861,12 @@ def get_active_surveys(request):
         print("ううう:",end="")
         print(survey_data)
         if is_ajax_request:  # AJAXリクエストの場合
+            print("えええ:",end="")
+            print("AJAXリクエスト")
             return JsonResponse(survey_data, safe=False)
         else:  # 通常のリクエストの場合
+            print("おおお:",end="")
+            print("通常のリクエスト")
             return render(request, 'polls/index.html', {
                 'index': [selected_survey]  # 選択されたアンケートを渡す
             })
