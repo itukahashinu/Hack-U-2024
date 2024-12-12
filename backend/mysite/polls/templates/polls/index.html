@@ -154,10 +154,12 @@
 
     <script>
         function showUnansweredSurveys() {
+            console.log('フラグ1: showUnansweredSurveys関数開始');
             document.getElementById('popup').style.display = 'block';
             // AJAXリクエストで未回答のアンケートを取得
             fetch('/get_active_surveys/')  // 未回答のアンケートを取得するURL
                 .then(response => {
+                    console.log('フラグ2: レスポンス受信');
                     console.log('Response:', response);  // レスポンスを確認
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -165,11 +167,13 @@
                     return response.json();
                 })
                 .then(data => {
+                    console.log('フラグ3: JSONデータ受信');
                     console.log('Data:', data);  // データを確認
                     const container = document.getElementById('survey-container');
                     container.innerHTML = '';  // 既存の内容をクリア
 
                     if (data.length > 0) {  // データが存在するか確認
+                        console.log('フラグ4: データが存在する');
                         data.forEach(survey => {
                             const surveyDiv = document.createElement('div');
                             surveyDiv.innerHTML = `<h2>${survey.title}</h2><p>${survey.description}</p>`;
@@ -184,21 +188,25 @@
 
                             container.appendChild(surveyDiv);
                         });
+                        console.log('フラグ5: すべてのアンケートを表示');
                         document.getElementById('submitSurvey').style.display = 'block';  // 送信ボタンを表示
                     } else {
+                        console.log('フラグ6: データが存在しない');
                         container.innerHTML = '<p>未回答のアンケートはありません。</p>';
                     }
                 })
                 .catch(error => {
-                    console.error('There was a problem with the fetch operation:', error);
+                    console.error('フラグ7: エラー発生', error);
                 });
         }
 
         function closePopup() {
+            console.log('フラグ8: closePopup関数開始');
             document.getElementById('popup').style.display = 'none';
         }
 
         function submitSurvey() {
+            console.log('フラグ9: submitSurvey関数開始');
             // ここで回答を送信するロジックを実装
             // 例: フォームデータを収集して送信
             const surveyData = {};
@@ -208,11 +216,12 @@
             });
 
             // 送信処理（ここでは試験的にアンケート作成画面にリダイレクト）
-            console.log('送信データ:', surveyData);  // デバッグ用に送信データを表示
+            console.log('フラグ10: 送信データ準備完了', surveyData);  // デバッグ用に送信データを表示
             window.location.href = "{% url 'polls:survey_create' %}";  // アンケート作成画面にリダイレクト
         }
          // 検索とフィルタリングの処理
         function updateSearch() {
+            console.log('フラグ11: updateSearch関数開始');
             const searchQuery = document.getElementById('searchInput').value;
             const categoryId = document.getElementById('categorySelect').value;
             
@@ -227,6 +236,7 @@
 
         // イベントリスナーの設定
         document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            console.log('フラグ12: キーが入力された');
             // Enterキーが押されたら検索を実行
             if (e.key === 'Enter') {
                 updateSearch();
@@ -237,6 +247,7 @@
 
         // 検索フォームの初期値を設定
         window.addEventListener('load', function() {
+            console.log('フラグ13: ページがロードされた');
             const urlParams = new URLSearchParams(window.location.search);
             const searchQuery = urlParams.get('q');
             const category = urlParams.get('category');

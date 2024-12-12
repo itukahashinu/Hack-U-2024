@@ -40,14 +40,7 @@ def index(request):
     surveys = Survey.objects.prefetch_related('questions__choices').order_by('-created_at')
     
     # デバッグ情報
-    print("\n=== Debug Information ===")
-    for survey in surveys:
-        print(f"\nSurvey ID: {survey.id}")
-        print(f"Title: {survey.title}")
-        print(f"Description: {survey.description}")
-        for question in survey.questions.all():
-            print(f"- Question: {question.question_text}")
-            print(f"  Choices: {[c.choice_text for c in question.choices.all()]}")
+    
     surveys = Survey.objects.prefetch_related(
         'questions__choices',
         'responses__answers__selected_choices'
