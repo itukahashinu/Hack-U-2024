@@ -93,6 +93,7 @@ class Survey(models.Model):
         # 現在の日時
         now = timezone.now()
         
+        print("かかか:"+self.status,now,self.end_date)
         # 新規作成時はステータスの自動設定を行わない
         if not self.pk:  # 新規作成時
             super().save(*args, **kwargs)
@@ -117,6 +118,9 @@ class Survey(models.Model):
                 self.status = 'closed'
             elif self.start_date <= now <= self.end_date:
                 self.status = 'active'
+        
+        print("ききき:"+self.status,now,self.end_date)
+        
         self.save()
 
     def get_questions(self):
