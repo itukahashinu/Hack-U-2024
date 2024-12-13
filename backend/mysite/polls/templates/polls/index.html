@@ -179,20 +179,20 @@
 
                     if (Object.keys(data).length > 0) {  // データが存在するか確認
                         console.log('フラグ4: データが存在する');
-                        data.forEach(survey => {
-                            const surveyDiv = document.createElement('div');
-                            surveyDiv.innerHTML = `<h2>${survey.title}</h2><p>${survey.description}</p>`;
-                            
-                            // 質問を追加
-                            survey.questions.forEach(question => {
-                                surveyDiv.innerHTML += `<p>${question.text}</p>`;
-                                question.choices.forEach(choice => {
-                                    surveyDiv.innerHTML += `<label><input type="radio" name="question_${question.id}" value="${choice.id}">${choice.text}</label><br>`;
-                                });
+                        
+                        const surveyDiv = document.createElement('div');
+                        surveyDiv.innerHTML = `<h2>${data.title}</h2><p>${data.description}</p>`;
+                        
+                        // 質問を追加
+                        data.questions.forEach(question => {
+                            surveyDiv.innerHTML += `<p>${question.text}</p>`;
+                            question.choices.forEach(choice => {
+                                surveyDiv.innerHTML += `<label><input type="radio" name="question_${question.id}" value="${choice.id}">${choice.text}</label><br>`;
                             });
-
-                            container.appendChild(surveyDiv);
                         });
+
+                        container.appendChild(surveyDiv);
+
                         console.log('フラグ5: すべてのアンケートを表示');
                         document.getElementById('submitSurvey').style.display = 'block';  // 送信ボタンを表示
                     } else {
