@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-8">
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-6">{{ survey.title }} - 集計結果</h1>
+        
+        <div class="mb-4">
+            <p class="text-gray-600">総回答数: {{ total_responses }}</p>
+            <p class="text-gray-600">達成率: {{ survey.progress }}%</p>
+        </div>
+
+        {% for question in questions %}
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">{{ question.question_text }}</h2>
+            
+            {% for choice in question.choices %}
+            <div class="mb-4">
+                <div class="flex justify-between mb-2">
+                    <span>{{ choice.choice_text }}</span>
+                    <span class="font-medium">{{ choice.votes }}票</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    {% if question.total_votes > 0 %}
+                        <div class="bg-blue-600 h-2.5 rounded-full" 
+                             style="width: {% widthratio choice.votes question.total_votes 100 %}%">
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="mt-2 text-sm text-gray-500">
+                合計: {{ question.total_votes }}票
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 
