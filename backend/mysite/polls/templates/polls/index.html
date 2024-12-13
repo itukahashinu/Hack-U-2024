@@ -177,7 +177,7 @@
                     const container = document.getElementById('survey-container');
                     container.innerHTML = '';  // 既存の内容をクリア
 
-                    if (data.length > 0) {  // データが存在するか確認
+                    if (Object.keys(data).length > 0) {  // データが存在するか確認
                         console.log('フラグ4: データが存在する');
                         data.forEach(survey => {
                             const surveyDiv = document.createElement('div');
