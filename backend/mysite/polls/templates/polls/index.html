@@ -157,7 +157,12 @@
             console.log('フラグ1: showUnansweredSurveys関数開始');
             document.getElementById('popup').style.display = 'block';
             // AJAXリクエストで未回答のアンケートを取得
-            fetch('/get_active_surveys/')  // 未回答のアンケートを取得するURL
+            fetch('/get_active_surveys/', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })  // 未回答のアンケートを取得するURL
                 .then(response => {
                     console.log('フラグ2: レスポンス受信');
                     console.log('Response:', response);  // レスポンスを確認
@@ -219,7 +224,7 @@
             console.log('フラグ10: 送信データ準備完了', surveyData);  // デバッグ用に送信データを表示
             window.location.href = "{% url 'polls:survey_create' %}";  // アンケート作成画面にリダイレクト
         }
-         // 検索とフィルタリングの処理
+        // 検索とフィルタリングの処理
         function updateSearch() {
             console.log('フラグ11: updateSearch関数開始');
             const searchQuery = document.getElementById('searchInput').value;
