@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, Http404, JsonResponse
+from django.http import HttpResponseRedirect, Http404, JsonResponse, HttpResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction, models
@@ -28,6 +28,8 @@ from django.utils import timezone
 import re
 from django.db.models import Q
 from django.core.exceptions import PermissionDenied
+import csv
+from datetime import datetime as dt  # 別名でインポート
 
 def create_google_form_mock(survey_data):
     """
@@ -429,7 +431,7 @@ def survey_detail_view(request, survey_id):
         pk=survey_id
     )
     
-    # 自分が参加者かどうかをチェック
+    # 自が参加者かどうかをチェック
     is_participant = SurveyParticipant.objects.filter(
         survey=survey,
         user=request.user
@@ -786,7 +788,7 @@ def submit_survey(request, survey_id):
     
     survey = get_object_or_404(Survey, id=survey_id)
     
-    # アンケートが回答可能な状態かチェック
+    # アンケートが��答可能な状態かチェック
     if survey.status != 'active':
         messages.error(request, 'このアンケートは現在回答を受け付けていません。')
         return redirect('polls:survey_detail', survey_id=survey_id)
@@ -826,7 +828,7 @@ def submit_survey(request, survey_id):
             survey.current_responses = F('current_responses') + 1
             survey.save()
             
-            messages.success(request, 'アンケートの回答を送信しました。ご協力ありがとうございます。')
+            messages.success(request, 'アンケートの回答を送信しまた。ご協力ありがとうございます。')
             return redirect('polls:index')
             
     except ValueError as e:
@@ -938,3 +940,64 @@ def survey_results(request, survey_id):
     }
     
     return render(request, 'polls/survey_results.html', context)
+
+@login_required
+def export_survey_results(request, survey_id):
+    try:
+        survey = get_object_or_404(Survey, pk=survey_id)
+        
+        if request.user != survey.creator:
+            raise PermissionDenied
+        
+        response = HttpResponse(
+            content_type='text/csv',
+        )
+        response['Content-Disposition'] = f'attachment; filename="survey_results_{survey_id}_{dt.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        response.write(u'\ufeff')  # BOMを追加
+        
+        writer = csv.writer(response)
+        
+        # 質問を取得
+        questions = survey.questions.all().prefetch_related('choices')
+        
+        # 回答者と回答を取得（select_relatedを削除）
+        survey_responses = SurveyResponse.objects.filter(survey=survey)
+        
+        # ヘッダー行：回答者名、質問内容、回答
+        writer.writerow(['回答者名', '質問内容', '回答'])
+        
+        # 各回答者の回答を書き込む
+        for survey_response in survey_responses:
+            answers = Answer.objects.filter(response=survey_response).prefetch_related('selected_choices')
+            answers_dict = {
+                answer.question_id: ', '.join([c.choice_text for c in answer.selected_choices.all()])
+                for answer in answers
+            }
+            
+            # 各質問に対する回答を書き込む
+            for question in questions:
+                try:
+                    username = survey_response.participant.username if survey_response.participant else '匿名'
+                except:
+                    username = '不明'
+                
+                writer.writerow([
+                    username,                       # 回答者名
+                    question.question_text,         # 質問内容
+                    answers_dict.get(question.id, '') # 回答内容
+                ])
+            
+            # 回答者間の区切り
+            writer.writerow([])
+        
+        print("Export completed successfully")
+        return response
+        
+    except Exception as e:
+        print("=== Error Details ===")
+        print(f"Error Type: {type(e).__name__}")
+        print(f"Error Message: {str(e)}")
+        print("Traceback:")
+        print(traceback.format_exc())
+        print("==================")
+        raise

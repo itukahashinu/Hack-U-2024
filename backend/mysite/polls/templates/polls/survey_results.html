@@ -4,7 +4,14 @@
 {% block content %}
 <div class="container mx-auto px-6 py-8">
     <div class="bg-white rounded-xl shadow-lg p-6">
-        <h1 class="text-2xl font-bold mb-6">{{ survey.title }} - 集計結果</h1>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">{{ survey.title }} - 集計結果</h1>
+            <a href="{% url 'polls:export_survey_results' survey.id %}" 
+               class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
+                <i class="fas fa-file-download mr-2"></i>
+                CSVでダウンロード
+            </a>
+        </div>
         
         <div class="mb-4">
             <p class="text-gray-600">総回答数: {{ total_responses }}</p>

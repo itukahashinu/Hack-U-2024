@@ -32,5 +32,7 @@ api_urlpatterns = [
 ]
 
 # 両方のURLパターンを結合
-urlpatterns = main_urlpatterns + api_urlpatterns
+urlpatterns = main_urlpatterns + api_urlpatterns + [
+    path('surveys/<int:survey_id>/export/', views.export_survey_results, name='export_survey_results'),
+]
 
