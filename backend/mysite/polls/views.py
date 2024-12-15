@@ -788,7 +788,7 @@ def submit_survey(request, survey_id):
     
     survey = get_object_or_404(Survey, id=survey_id)
     
-    # アンケートが��答可能な状態かチェック
+    # アンケートが回答可能な状態かチェック
     if survey.status != 'active':
         messages.error(request, 'このアンケートは現在回答を受け付けていません。')
         return redirect('polls:survey_detail', survey_id=survey_id)
@@ -958,37 +958,36 @@ def export_survey_results(request, survey_id):
         writer = csv.writer(response)
         
         # 質問を取得
-        questions = survey.questions.all().prefetch_related('choices')
+        questions = list(survey.questions.all().prefetch_related('choices'))
         
-        # 回答者と回答を取得（select_relatedを削除）
+        # ヘッダー行：回答者名と質問内容
+        header_row = ['回答者名'] + [question.question_text for question in questions]
+        writer.writerow(header_row)
+        
+        # 回答者と回答を取得
         survey_responses = SurveyResponse.objects.filter(survey=survey)
-        
-        # ヘッダー行：回答者名、質問内容、回答
-        writer.writerow(['回答者名', '質問内容', '回答'])
         
         # 各回答者の回答を書き込む
         for survey_response in survey_responses:
+            # 回答者の全ての回答を取得
             answers = Answer.objects.filter(response=survey_response).prefetch_related('selected_choices')
             answers_dict = {
                 answer.question_id: ', '.join([c.choice_text for c in answer.selected_choices.all()])
                 for answer in answers
             }
             
-            # 各質問に対する回答を書き込む
-            for question in questions:
-                try:
-                    username = survey_response.participant.username if survey_response.participant else '匿名'
-                except:
-                    username = '不明'
-                
-                writer.writerow([
-                    username,                       # 回答者名
-                    question.question_text,         # 質問内容
-                    answers_dict.get(question.id, '') # 回答内容
-                ])
+            # 回答者の行を作成
+            try:
+                username = survey_response.participant.username if survey_response.participant else '匿名'
+            except:
+                username = '不明'
             
-            # 回答者間の区切り
-            writer.writerow([])
+            # 各質問の回答を配列に追加
+            row = [username]  # 回答者名
+            for question in questions:
+                row.append(answers_dict.get(question.id, ''))  # 各質問の回答
+            
+            writer.writerow(row)
         
         print("Export completed successfully")
         return response
