@@ -212,20 +212,20 @@
 
         function submitSurvey() {
             console.log('フラグ9: submitSurvey関数開始');
-            // ここで回答を送信するロジックを実装
-            // 例: フォームデータを収集して送信
             const surveyData = {};
+            const surveyId = document.getElementById('survey-container').dataset.id; // HTML から ID を取得
+            surveyData.id = surveyId;
+
             const questions = document.querySelectorAll('#survey-container input[type="radio"]:checked');
             questions.forEach(question => {
-                surveyData[question.name] = question.value;  // 質問IDをキーに選択肢IDを値として保存
+                surveyData[question.name] = question.value;
             });
 
-            // AJAXリクエストを送信
-            fetch(`/submit_survey_response/${surveyData.id}`, {  // アンケートのIDはここで取得する必要がある
+            fetch(`/submit_survey_response/${surveyData.id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]  // CSRFトークンを取得
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: JSON.stringify({ answers: surveyData })
             })
@@ -237,13 +237,20 @@
             })
             .then(data => {
                 console.log('フラグ10: 回答が送信されました', data);
-                closePopup();  // ポップアップを閉じる
-                // 必要に応じて、成功メッセージを表示
+                closePopup();
             })
             .catch(error => {
                 console.error('フラグ11: エラー発生', error);
             });
         }
+
+        function getCSRFToken() {
+            const cookieValue = document.cookie.split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            return cookieValue || '';
+        }
+
         // 検索とフィルタリングの処理
         function updateSearch() {
             console.log('フラグ11: updateSearch関数開始');
