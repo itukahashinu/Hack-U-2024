@@ -12,30 +12,105 @@
         </div>
 
         {% for question in questions %}
-        <div class="mb-8">
+        <div class="mb-12">
             <h2 class="text-xl font-semibold mb-4">{{ question.question_text }}</h2>
             
-            {% for choice in question.choices %}
-            <div class="mb-4">
-                <div class="flex justify-between mb-2">
-                    <span>{{ choice.choice_text }}</span>
-                    <span class="font-medium">{{ choice.votes }}票</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5">
-                    {% if question.total_votes > 0 %}
-                        <div class="bg-blue-600 h-2.5 rounded-full" 
-                             style="width: {% widthratio choice.votes question.total_votes 100 %}%">
-                        </div>
-                    {% endif %}
+            <!-- グラフ用のキャンバス -->
+            <div class="flex justify-center mb-4">
+                <div style="width: 400px; height: 400px;">
+                    <canvas id="pieChart{{ forloop.counter }}"></canvas>
                 </div>
             </div>
-            {% endfor %}
-            
-            <div class="mt-2 text-sm text-gray-500">
-                合計: {{ question.total_votes }}票
+
+            <!-- 投票数の詳細 -->
+            <div class="mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    {% for choice in question.choices %}
+                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span>{{ choice.choice_text }}</span>
+                        <span class="font-medium">{{ choice.votes }}票</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-2 text-sm text-gray-500 text-center">
+                    合計: {{ question.total_votes }}票
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<!-- Chart.jsを読み込み -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% for question in questions %}
+        // 各質問のデータを準備
+        const data{{ forloop.counter }} = {
+            labels: [
+                {% for choice in question.choices %}
+                    '{{ choice.choice_text }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for choice in question.choices %}
+                        {{ choice.votes }},
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 206, 86, 0.8)',
+                    'rgba(75, 192, 192, 0.8)',
+                    'rgba(153, 102, 255, 0.8)',
+                    'rgba(255, 159, 64, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // グラフの設定
+        const config{{ forloop.counter }} = {
+            type: 'pie',
+            data: data{{ forloop.counter }},
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value}票 (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        // グラフを描画
+        new Chart(
+            document.getElementById('pieChart{{ forloop.counter }}'),
+            config{{ forloop.counter }}
+        );
+    {% endfor %}
+});
+</script>
 {% endblock %} 
