@@ -2,106 +2,125 @@
 {% load static %}
 
 {% block content %}
-<div class="container mx-auto px-6 py-8">
-    <div class="bg-white rounded-xl shadow-lg p-6">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">{{ survey.title }} - 集計結果</h1>
-            <a href="{% url 'polls:export_survey_results' survey.id %}" 
-               class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded inline-flex items-center">
-                <i class="fas fa-file-download mr-2"></i>
-                CSVでダウンロード
-            </a>
-        </div>
-        
-        <div class="mb-4">
-            <p class="text-gray-600">総回答数: {{ total_responses }}</p>
-            <p class="text-gray-600">達成率: {{ survey.progress }}%</p>
-        </div>
-
-        {% for question in questions %}
-        <div class="mb-12">
-            <h2 class="text-xl font-semibold mb-4">{{ question.question_text }}</h2>
+<div class="min-h-screen bg-gray-50 py-8">
+    <!-- ヘッダーセクション（固定） -->
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">{{ survey.title }}</h1>
+                    <p class="mt-2 text-gray-600">集計結果</p>
+                </div>
+                <a href="{% url 'polls:export_survey_results' survey.id %}" 
+                   class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors duration-200">
+                    <i class="fas fa-file-download mr-2"></i>
+                    CSVでダウンロード
+                </a>
+            </div>
             
-            <!-- グラフ用のキャンバス -->
-            <div class="flex justify-center mb-4">
-                <div style="width: 400px; height: 400px;">
-                    <canvas id="pieChart{{ forloop.counter }}"></canvas>
+            <!-- 概要情報 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <p class="text-sm text-blue-600 font-medium">総回答数</p>
+                    <p class="text-2xl font-bold text-blue-900">{{ total_responses }}件</p>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4">
+                    <p class="text-sm text-green-600 font-medium">達成率</p>
+                    <p class="text-2xl font-bold text-green-900">{{ survey.progress }}%</p>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4">
+                    <p class="text-sm text-purple-600 font-medium">回答期間</p>
+                    <p class="text-lg font-medium text-purple-900">
+                        {{ survey.start_date|date:"Y/m/d" }} - {{ survey.end_date|date:"Y/m/d" }}
+                    </p>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- 投票数の詳細 -->
-            <div class="mt-4">
-                <div class="grid grid-cols-2 gap-4">
+    <!-- 横スクロール可能な質問セクション -->
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
+        <div class="flex space-x-6 pb-6" style="min-width: max-content;">
+            {% for question in questions %}
+            <div class="bg-white rounded-lg shadow-lg p-6" style="width: calc(100vw - 4rem); max-width: 600px;">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">{{ question.question_text }}</h2>
+                
+                <!-- グラフ表示エリア -->
+                <div class="mb-8 aspect-square">
+                    <canvas id="pieChart{{ forloop.counter }}" class="w-full h-full"></canvas>
+                </div>
+
+                <!-- 選択肢ごとの詳細 -->
+                <div class="grid grid-cols-1 gap-4">
                     {% for choice in question.choices %}
-                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <span>{{ choice.choice_text }}</span>
-                        <span class="font-medium">{{ choice.votes }}票</span>
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-700">{{ choice.choice_text }}</span>
+                            <span class="font-medium text-gray-900">{{ choice.votes }}票</span>
+                        </div>
+                        <div class="mt-2 w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-1000" 
+                                 style="width: 0%"
+                                 data-percentage="{% widthratio choice.votes question.total_votes 100 %}">
+                            </div>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
-                <div class="mt-2 text-sm text-gray-500 text-center">
-                    合計: {{ question.total_votes }}票
-                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </div>
 
-<!-- Chart.jsを読み込み -->
+<!-- Chart.js スクリプト -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     {% for question in questions %}
-        // 各質問のデータを準備
-        const data{{ forloop.counter }} = {
-            labels: [
-                {% for choice in question.choices %}
-                    '{{ choice.choice_text }}',
-                {% endfor %}
-            ],
-            datasets: [{
-                data: [
+        new Chart(document.getElementById('pieChart{{ forloop.counter }}'), {
+            type: 'pie',
+            data: {
+                labels: [
                     {% for choice in question.choices %}
-                        {{ choice.votes }},
+                        '{{ choice.choice_text }}',
                     {% endfor %}
                 ],
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 206, 86, 0.8)',
-                    'rgba(75, 192, 192, 0.8)',
-                    'rgba(153, 102, 255, 0.8)',
-                    'rgba(255, 159, 64, 0.8)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)',
-                    'rgba(75, 192, 192, 1)',
-                    'rgba(153, 102, 255, 1)',
-                    'rgba(255, 159, 64, 1)'
-                ],
-                borderWidth: 1
-            }]
-        };
-
-        // グラフの設定
-        const config{{ forloop.counter }} = {
-            type: 'pie',
-            data: data{{ forloop.counter }},
+                datasets: [{
+                    data: [
+                        {% for choice in question.choices %}
+                            {{ choice.votes }},
+                        {% endfor %}
+                    ],
+                    backgroundColor: [
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(139, 92, 246, 0.8)',
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(107, 114, 128, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                },
                 plugins: {
                     legend: {
-                        position: 'bottom',
+                        position: 'bottom'
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
                                 const label = context.label || '';
-                                const value = context.parsed || 0;
+                                const value = context.raw || 0;
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                 const percentage = Math.round((value / total) * 100);
                                 return `${label}: ${value}票 (${percentage}%)`;
@@ -110,14 +129,42 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             }
-        };
-
-        // グラフを描画
-        new Chart(
-            document.getElementById('pieChart{{ forloop.counter }}'),
-            config{{ forloop.counter }}
-        );
+        });
     {% endfor %}
+
+    // プログレスバーのアニメーション
+    setTimeout(() => {
+        document.querySelectorAll('[data-percentage]').forEach(bar => {
+            const percentage = bar.getAttribute('data-percentage');
+            bar.style.width = `${percentage}%`;
+        });
+    }, 300);
+
+    // スクロールインジケーターの追加
+    const container = document.querySelector('.overflow-x-auto');
+    if (container.scrollWidth > container.clientWidth) {
+        const indicator = document.createElement('div');
+        indicator.className = 'text-center text-gray-500 mt-4';
+        indicator.innerHTML = '<i class="fas fa-arrows-left-right"></i> スクロールして他の質問を見る';
+        container.parentNode.insertBefore(indicator, container.nextSibling);
+    }
 });
 </script>
+
+<style>
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+}
+
+.overflow-x-auto > div > div {
+    scroll-snap-align: start;
+}
+
+@media (max-width: 640px) {
+    .overflow-x-auto > div > div {
+        width: calc(100vw - 2rem) !important;
+    }
+}
+</style>
 {% endblock %} 
