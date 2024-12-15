@@ -220,9 +220,29 @@
                 surveyData[question.name] = question.value;  // 質問IDをキーに選択肢IDを値として保存
             });
 
-            // 送信処理（ここでは試験的にアンケート作成画面にリダイレクト）
-            console.log('フラグ10: 送信データ準備完了', surveyData);  // デバッグ用に送信データを表示
-            window.location.href = "{% url 'polls:survey_create' %}";  // アンケート作成画面にリダイレクト
+            // AJAXリクエストを送信
+            fetch(`/submit_survey_response/${surveyData.id}`, {  // アンケートのIDはここで取得する必要がある
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.cookie.split('; ').find(row => row.startsWith('csrftoken=')).split('=')[1]  // CSRFトークンを取得
+                },
+                body: JSON.stringify({ answers: surveyData })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('フラグ10: 回答が送信されました', data);
+                closePopup();  // ポップアップを閉じる
+                // 必要に応じて、成功メッセージを表示
+            })
+            .catch(error => {
+                console.error('フラグ11: エラー発生', error);
+            });
         }
         // 検索とフィルタリングの処理
         function updateSearch() {
@@ -263,7 +283,6 @@
                 document.getElementById('categorySelect').value = category;
             }
         });
-
 
     </script>
 

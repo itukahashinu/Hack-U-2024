@@ -496,7 +496,7 @@ def submit_survey_response(request, survey_id):
                 }, status=400)
 
             # 回答データの検証
-            answers = data.get('answers', [])
+            answers = data.get('answers', {})
             if not answers:
                 return JsonResponse({
                     'error': '回答が選択されていません。'
@@ -504,7 +504,7 @@ def submit_survey_response(request, survey_id):
 
             # 必須回答のチェック
             required_questions = survey.questions.filter(is_required=True).values_list('id', flat=True)
-            answered_questions = {answer['question_id'] for answer in answers}
+            answered_questions = set(answers.keys())  # 質問IDをキーとして使用
             missing_required = set(required_questions) - answered_questions
             
             if missing_required:
@@ -516,10 +516,7 @@ def submit_survey_response(request, survey_id):
             # 回答を保存
             response = SurveyResponse.objects.create(survey=survey)
             
-            for answer_data in answers:
-                question_id = answer_data['question_id']
-                choice_ids = answer_data.get('choice_ids', [])
-                
+            for question_id, choice_id in answers.items():
                 question = survey.questions.get(id=question_id)
                 answer = Answer.objects.create(
                     response=response,
@@ -527,14 +524,13 @@ def submit_survey_response(request, survey_id):
                 )
                 
                 # 選択肢の保存と投票数の更新
-                for choice_id in choice_ids:
-                    choice = Choice.objects.select_for_update().get(
-                        id=choice_id,
-                        question=question
-                    )
-                    choice.votes = F('votes') + 1
-                    choice.save()
-                    answer.selected_choices.add(choice)
+                choice = Choice.objects.select_for_update().get(
+                    id=choice_id,
+                    question=question
+                )
+                choice.votes = F('votes') + 1
+                choice.save()
+                answer.selected_choices.add(choice)
 
             # 回答数を更新
             survey.current_responses = F('current_responses') + 1
@@ -682,7 +678,7 @@ def survey_create(request):
             status=request.POST.get('status', 'active')
         )
 
-        # POSTデ��タから質問と選択肢を取得
+        # POSTデータから質問と選択肢を取得
         questions = []
         choices = {}
         
@@ -751,7 +747,7 @@ def submit_survey(request, survey_id):
     
     try:
         with transaction.atomic():
-            # 回答レコードを作成
+            # 回答レコード���作成
             response = SurveyResponse.objects.create(
                 survey=survey
             )
