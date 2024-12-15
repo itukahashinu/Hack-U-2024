@@ -10,8 +10,18 @@ class Theme(models.Model):
     def __str__(self):
         return self.title
 
+    @classmethod
+    def get_default_theme(cls):
+        default_theme, created = cls.objects.get_or_create(
+            title='デフォルトテーマ',
+            description='デフォルトテーマの説明',
+            start_date='2020-01-01',
+            end_date='2020-12-31',
+        )
+        return default_theme
+
 class Idea(models.Model):
-    theme = models.ForeignKey(Theme, on_delete=models.CASCADE)
+    theme = models.ForeignKey(Theme, on_delete=models.CASCADE, default=Theme.get_default_theme)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.TextField()
