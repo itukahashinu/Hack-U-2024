@@ -28,7 +28,7 @@
     <div id="popup" style="display:none;">
         <div id="popup-content">
             <span onclick="closePopup()" style="cursor:pointer;">&times; 閉じる</span>
-            <div id="survey-container"></div>
+            <div id="survey-container" data-id="32"></div>
             <button id="submitSurvey" style="display:none;" onclick="submitSurvey()">回答を送信</button>
         </div>
     </div>
@@ -209,19 +209,41 @@
             console.log('フラグ8: closePopup関数開始');
             document.getElementById('popup').style.display = 'none';
         }
-
+        
+        // submitSurvey 関数をグローバルスコープで定義
         function submitSurvey() {
             console.log('フラグ9: submitSurvey関数開始');
             const surveyData = {};
-            const surveyId = document.getElementById('survey-container').dataset.id; // HTML から ID を取得
+            const container = document.getElementById('survey-container');
+            
+            if (!container) {
+                console.error('survey-containerが見つかりません');
+                return;
+            }
+
+            // surveyId を正しく取得
+            const surveyId = container.dataset.id;
+            console.log('Survey ID:', surveyId);  // surveyIdが正しく取得されているか確認
+            
+            if (!surveyId) {
+                console.error('Survey ID is missing!');
+                return;  // surveyIdが取得できない場合は処理を中止
+            }
+
             surveyData.id = surveyId;
 
             const questions = document.querySelectorAll('#survey-container input[type="radio"]:checked');
-            questions.forEach(question => {
-                surveyData[question.name] = question.value;
-            });
+            if (questions.length > 0) {
+                questions.forEach(question => {
+                    surveyData[question.name] = question.value;
+                });
+            } else {
+                console.log('No questions selected');
+            }
 
-            fetch(`/submit_survey_response/${surveyData.id}`, {
+            console.log('送信するデータ:', JSON.stringify(surveyData));  // 送信するデータが正しいか確認
+
+            fetch(`/submit_survey_response/${surveyData.id}/`, {  // スラッシュを追加
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -243,6 +265,16 @@
                 console.error('フラグ11: エラー発生', error);
             });
         }
+
+        // DOMが完全に読み込まれた後にボタンにイベントリスナーを設定
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitButton = document.getElementById('submit-button');  // ボタンのIDを設定
+            if (submitButton) {
+                submitButton.addEventListener('click', submitSurvey);  // ボタンにsubmitSurvey関数を追加
+            }
+        });
+
+
 
         function getCSRFToken() {
             const cookieValue = document.cookie.split('; ')
