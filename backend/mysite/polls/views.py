@@ -132,7 +132,7 @@ def create_survey(request):
                     title=request.POST['title'],
                     description=request.POST.get('description', ''),
                     start_date=request.POST['start_date'],
-                    end_date=request.POST['end_date'],
+                    end_date=datetime.datetime.strptime(request.POST['end_date'], '%Y-%m-%dT%H:%M'),
                     required_responses=request.POST.get('required_responses', 0),
                     status=request.POST['status'],
                     category_id=request.POST.get('category'),

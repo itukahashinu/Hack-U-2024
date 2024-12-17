@@ -19,7 +19,7 @@ main_urlpatterns = [
     path('survey/<int:survey_id>/update-status/', views.update_survey_status, name='update_survey_status'),
     path('survey/<int:survey_id>/submit/', views.submit_survey, name='submit_survey'),
     path('get_active_surveys/', views.get_active_surveys, name='get_active_surveys'),
-    path('submit_survey_response/<int:id>/', views.submit_survey_response, name='submit_survey_response'),
+    path('submit_survey_response/<int:survey_id>/', views.submit_survey_response, name='submit_survey_response'),
 
 ]
 # API用URL

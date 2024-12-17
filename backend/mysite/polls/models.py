@@ -91,7 +91,7 @@ class Survey(models.Model):
 
     def save(self, *args, **kwargs):
         # 現在の日時
-        now = timezone.now()
+        now = timezone.localtime()
         
         print("かかか:"+self.status,now,self.end_date)
         # 新規作成時はステータスの自動設定を行わない
@@ -110,7 +110,7 @@ class Survey(models.Model):
         """
         現在の日時に基づいてステータスを更新する
         """
-        now = timezone.now()
+        now = timezone.localtime()
         if self.status != 'paused':  # 一時停止中は自動更新しない
             if now < self.start_date:
                 self.status = 'draft'
