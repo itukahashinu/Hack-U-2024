@@ -16,9 +16,7 @@ class Theme(models.Model):
             title='デフォルトテーマ',
             description='デフォルトテーマの説明',
             start_date='2020-01-01',
-
             end_date='2050-12-31',
-
         )
         return default_theme
 
