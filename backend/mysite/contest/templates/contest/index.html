@@ -1,70 +1,97 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!-- ヒーローセクション -->
-<div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-    <div class="container mx-auto px-6 py-16">
-        <h1 class="text-4xl font-bold mb-4">アイデアコンテスト</h1>
-        <p class="text-xl opacity-90">新しいアイデアを共有し、評価しあおう</p>
-        <a href="{% url 'contest:submit_idea' %}" class="inline-flex items-center px-4 py-2 bg-white text-blue-600 rounded-md font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
-            新しいアイデアを投稿
-        </a>  <!-- 作成ボタン -->
+<div class="min-h-screen bg-gray-50">
+    <!-- ヒーローセクション -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+            <div class="text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold mb-4">アイデアコンテスト</h1>
+                <p class="text-xl opacity-90 mb-8">新しいアイデアを共有し、評価しあおう</p>
+                <a href="{% url 'contest:submit_idea' %}" 
+                   class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    新しいアイデアを投稿
+                </a>
+            </div>
+        </div>
     </div>
-</div>
 
-<!-- 現在のテーマ表示セクション -->
-<div class="relative -mt-10 mb-8">
-    <div class="container mx-auto px-6">
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-blue-500">
-            <div class="p-6">
-                <div class="flex items-center space-x-2">
-                    <div class="flex-shrink-0">
-                        <svg class="h-8 w-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-900">
-                            {{ current_year }}年{{ current_month }}月のテーマ
-                        </h2>
-                        <p class="mt-2 text-2xl font-bold text-blue-600">
-                            {{ current_theme }}
-                            <span class="text-blue-400 text-xl">！！！</span>
-                        </p>
+    <!-- 現在のテーマ表示セクション -->
+    <div class="relative -mt-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border-l-4 border-blue-500">
+                <div class="p-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <svg class="h-10 w-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900">
+                                {{ current_year }}年{{ current_month }}月のテーマ
+                            </h2>
+                            <p class="mt-2 text-3xl font-bold text-blue-600">
+                                {{ current_theme }}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- メインコンテンツ -->
-<main>
-    <h3>投稿されたアイデア</h3>
-    {% for theme in themes %}
-        
-        <h4>{{ theme.title }}</h4>
-        <p>{{ theme.description }}</p>
-
-        {% if theme.idea_set.all %}
-        
-            <ul>
-                {% for idea in theme.idea_set.all %}
-                <h4>-------------------------------------------------------------------</h4>
-                    <li>
-                        <strong>タイトル:</strong> {{ idea.title }}<br>
-                        <strong>投稿者:</strong> {{ idea.author.username }}<br>
-                        <strong>内容:</strong> {{ idea.content }}<br>
-                        <strong>いいね数:</strong> {{ idea.likes.count }}<br>
-                        <a href="{% url 'contest:like_idea' idea.id %}" class="btn btn-primary">
-                            いいね ({{ idea.likes.count }})
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>まだアイデアの投稿はありません。</p>
+    <!-- メインコンテンツ -->
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {% if error_message %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6" role="alert">
+            <p>{{ error_message }}</p>
+        </div>
         {% endif %}
-    {% endfor %}
-</main>
+
+        <div class="space-y-8">
+            {% for theme in themes %}
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ theme.title }}</h3>
+                    <p class="text-gray-600 mb-4">{{ theme.description }}</p>
+                    
+                    {% if theme.idea_set.all %}
+                    <div class="divide-y divide-gray-200">
+                        {% for idea in theme.idea_set.all %}
+                        <div class="py-6">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-900">{{ idea.title }}</h4>
+                                    <p class="text-sm text-gray-500 mt-1">
+                                        投稿者: {{ idea.author.username }} | 
+                                        {{ idea.created_at|date:"Y/m/d H:i" }}
+                                    </p>
+                                </div>
+                                <a href="{% url 'contest:like_idea' idea.id %}" 
+                                   class="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors">
+                                    <svg class="h-5 w-5 mr-1" fill="{% if request.user in idea.likes.all %}currentColor{% else %}none{% endif %}" 
+                                         stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                              d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"/>
+                                    </svg>
+                                    <span>{{ idea.likes.count }}</span>
+                                </a>
+                            </div>
+                            <p class="mt-4 text-gray-700">{{ idea.content }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-8">まだアイデアの投稿はありません。</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endblock %}

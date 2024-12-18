@@ -1,15 +1,69 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>アイデアを投稿</title>
-</head>
-<body>
-    <h1>アイデアを投稿</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">投稿</button>
-    </form>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-12">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <div class="p-6 sm:p-8">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-gray-900">アイデアを投稿</h1>
+                        {% if current_theme %}
+                        <p class="mt-2 text-gray-600">現在のテーマ: {{ current_theme.title }}</p>
+                        {% endif %}
+                    </div>
+
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="space-y-1">
+                            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                {{ field.label }}
+                            </label>
+                            <div class="mt-1">
+                                {% if field.field.widget.input_type == 'textarea' %}
+                                <textarea
+                                    name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}"
+                                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                    rows="6"
+                                >{{ field.value|default:'' }}</textarea>
+                                {% else %}
+                                <input
+                                    type="{{ field.field.widget.input_type }}"
+                                    name="{{ field.name }}"
+                                    id="{{ field.id_for_label }}"
+                                    value="{{ field.value|default:'' }}"
+                                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                                >
+                                {% endif %}
+                            </div>
+                            {% if field.errors %}
+                            {% for error in field.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                            {% endfor %}
+                            {% endif %}
+                            {% if field.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="flex justify-end space-x-4 pt-4">
+                            <a href="{% url 'contest:index' %}" 
+                               class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                キャンセル
+                            </a>
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                投稿する
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
