@@ -28,7 +28,7 @@
     <div id="popup" style="display:none;">
         <div id="popup-content">
             <span onclick="closePopup()" style="cursor:pointer;">&times; 閉じる</span>
-            <div id="survey-container" data-id="32"></div>
+            <div id="survey-container" data-id=""></div>
             <button id="submitSurvey" style="display:none;" onclick="submitSurvey()">回答を送信</button>
         </div>
     </div>
@@ -175,6 +175,7 @@
                     console.log('フラグ3: JSONデータ受信');
                     console.log('Data:', data);  // データを確認
                     const container = document.getElementById('survey-container');
+                    container.dataset.id = data.id;  // surveyIdを設定
                     container.innerHTML = '';  // 既存の内容をクリア
 
                     if (Object.keys(data).length > 0) {  // データが存在するか確認
@@ -255,7 +256,7 @@
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.json();
+                return response;
             })
             .then(data => {
                 console.log('フラグ10: 回答が送信されました', data);
@@ -264,6 +265,8 @@
             .catch(error => {
                 console.error('フラグ11: エラー発生', error);
             });
+
+            console.log('JSON.str(surveyData):', JSON.stringify({ answers: surveyData }));
         }
 
         // DOMが完全に読み込まれた後にボタンにイベントリスナーを設定
