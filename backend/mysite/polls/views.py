@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, Http404, JsonResponse
+from django.http import HttpResponseRedirect, Http404, JsonResponse, HttpResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction, models
@@ -27,6 +27,9 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 import re
 from django.db.models import Q
+from django.core.exceptions import PermissionDenied
+import csv
+from datetime import datetime as dt  # 別名でインポート
 
 
 
@@ -34,10 +37,13 @@ def index(request):
     # パラメーターの取得
     search_query = request.GET.get('q', '')
     category_id = request.GET.get('category', '')
-    sort_by = request.GET.get('sort', 'new')  # ソート条件の取得
+    sort_by = request.GET.get('sort', '-start_date')  # ソート条件の取得
     
-        # Surveyモデルから全てのデータを取得（最新順）
-    surveys = Survey.objects.prefetch_related('questions__choices').order_by('-created_at')
+    # Surveyモデルから全てのデータを取得（sort_byで指定した順）
+    if sort_by == "-start_date" or sort_by == "-current_responses":
+        surveys = Survey.objects.prefetch_related('questions__choices').order_by(sort_by)
+    elif sort_by == "-end_date":
+        surveys = Survey.objects.prefetch_related('questions__choices').order_by(sort_by).reverse()
     
     # デバッグ情報
     
@@ -45,6 +51,23 @@ def index(request):
         'questions__choices',
         'responses__answers__selected_choices'
     ).order_by('-created_at')
+    print("\n=== Debug Information ===")
+    for survey in surveys:
+        print(f"\nSurvey: {survey.title}")
+        print(f"Creator: {survey.creator}")
+        print(f"Current User: {request.user}")
+        print(f"Is Creator: {survey.creator == request.user}")
+    
+    if sort_by == "-start_date" or sort_by == "-current_responses":
+        surveys = Survey.objects.prefetch_related(
+            'questions__choices',
+            'responses__answers__selected_choices'
+        ).order_by(sort_by)
+    elif sort_by == "-end_date":
+        surveys = Survey.objects.prefetch_related(
+            'questions__choices',
+            'responses__answers__selected_choices'
+        ).order_by(sort_by).reverse()
     
     # 検索クエリがある場合、フィルタリング
     if search_query:
@@ -136,6 +159,7 @@ def create_survey(request):
                     required_responses=request.POST.get('required_responses', 0),
                     status=request.POST['status'],
                     category_id=request.POST.get('category'),
+                    creator=request.user
                 )
 
                 # 質問の処理
@@ -387,7 +411,7 @@ def survey_detail_view(request, survey_id):
         pk=survey_id
     )
     
-    # 自分が参加者かどうかをチェック
+    # 自が参加者かどうかをチェック
     is_participant = SurveyParticipant.objects.filter(
         survey=survey,
         user=request.user
@@ -409,7 +433,7 @@ def survey_detail(request, survey_id):
     # prefetch_relatedを使用して関連データを効率的に取得
     survey = get_object_or_404(
         Survey.objects.prefetch_related(
-            'questions__choices'  # 質問と選択  を一度に取得
+            'questions__choices'  # 質問と選択肢を一度に取得
         ),
         id=survey_id
     )
@@ -585,7 +609,7 @@ def survey_create_view(request):
                         order=q_data['order']
                     )
                     
-                    # 選  肢を保存
+                    # 選択肢を保存
                     for i, choice_text in enumerate(q_data['choices']):
                         Choice.objects.create(
                             question=question,
@@ -786,7 +810,7 @@ def submit_survey(request, survey_id):
             survey.current_responses = F('current_responses') + 1
             survey.save()
             
-            messages.success(request, 'アンケートの回答を送信しました。ご協力ありがとうございます。')
+            messages.success(request, 'アンケートの回答を送信しまた。ご協力ありがとうございます。')
             return redirect('polls:index')
             
     except ValueError as e:
@@ -857,3 +881,107 @@ def get_active_surveys(request):
             })
 
     return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
+    return JsonResponse(surveys_data, safe=False)
+
+@login_required
+def survey_results(request, survey_id):
+    survey = get_object_or_404(Survey, pk=survey_id)
+    
+    # 作成者でない場合はアクセス拒否
+    if request.user != survey.creator:
+        raise PermissionDenied
+    
+    # 質問と選択肢を取得し、各選択肢の投票数を計算
+    questions = []
+    for question in survey.questions.all().prefetch_related('choices', 'answers__selected_choices'):
+        choices_data = []
+        total_votes = 0
+        
+        # 各選択肢の投票数を集計
+        for choice in question.choices.all():
+            votes = choice.answers.count()  # この選択肢が選ばれた回数
+            total_votes += votes
+            choices_data.append({
+                'choice_text': choice.choice_text,
+                'votes': votes
+            })
+        
+        questions.append({
+            'question_text': question.question_text,
+            'choices': choices_data,
+            'total_votes': total_votes
+        })
+        
+        # デバッグ情報
+        print(f"\nQuestion: {question.question_text}")
+        print(f"Total votes: {total_votes}")
+        for choice in choices_data:
+            print(f"- {choice['choice_text']}: {choice['votes']} votes")
+    
+    context = {
+        'survey': survey,
+        'questions': questions,
+        'total_responses': survey.current_responses,
+    }
+    
+    return render(request, 'polls/survey_results.html', context)
+
+@login_required
+def export_survey_results(request, survey_id):
+    try:
+        survey = get_object_or_404(Survey, pk=survey_id)
+        
+        if request.user != survey.creator:
+            raise PermissionDenied
+        
+        response = HttpResponse(
+            content_type='text/csv',
+        )
+        response['Content-Disposition'] = f'attachment; filename="survey_results_{survey_id}_{dt.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+        response.write(u'\ufeff')  # BOMを追加
+        
+        writer = csv.writer(response)
+        
+        # 質問を取得
+        questions = list(survey.questions.all().prefetch_related('choices'))
+        
+        # ヘッダー行：回答者名と質問内容
+        header_row = ['回答者名'] + [question.question_text for question in questions]
+        writer.writerow(header_row)
+        
+        # 回答者と回答を取得
+        survey_responses = SurveyResponse.objects.filter(survey=survey)
+        
+        # 各回答者の回答を書き込む
+        for survey_response in survey_responses:
+            # 回答者の全ての回答を取得
+            answers = Answer.objects.filter(response=survey_response).prefetch_related('selected_choices')
+            answers_dict = {
+                answer.question_id: ', '.join([c.choice_text for c in answer.selected_choices.all()])
+                for answer in answers
+            }
+            
+            # 回答者の行を作成
+            try:
+                username = survey_response.participant.username if survey_response.participant else '匿名'
+            except:
+                username = '不明'
+            
+            # 各質問の回答を配列に追加
+            row = [username]  # 回答者名
+            for question in questions:
+                row.append(answers_dict.get(question.id, ''))  # 各質問の回答
+            
+            writer.writerow(row)
+        
+        print("Export completed successfully")
+        return response
+        
+    except Exception as e:
+        print("=== Error Details ===")
+        print(f"Error Type: {type(e).__name__}")
+        print(f"Error Message: {str(e)}")
+        print("Traceback:")
+        print(traceback.format_exc())
+        print("==================")
+        raise

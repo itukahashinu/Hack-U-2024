@@ -21,6 +21,8 @@ main_urlpatterns = [
     path('get_active_surveys/', views.get_active_surveys, name='get_active_surveys'),
     path('submit_survey_response/<int:survey_id>/', views.submit_survey, name='submit_survey_response'),
 
+    path('surveys/active/', views.get_active_surveys, name='active_surveys'),
+    path('surveys/<int:survey_id>/results/', views.survey_results, name='survey_results'),
 ]
 # API用URL
 api_urlpatterns = [
@@ -33,5 +35,7 @@ api_urlpatterns = [
 ]
 
 # 両方のURLパターンを結合
-urlpatterns = main_urlpatterns + api_urlpatterns
+urlpatterns = main_urlpatterns + api_urlpatterns + [
+    path('surveys/<int:survey_id>/export/', views.export_survey_results, name='export_survey_results'),
+]
 

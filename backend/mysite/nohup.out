@@ -1,0 +1,611 @@
+Watching for file changes with StatReloader
+(0.000) 
+            SELECT name, type FROM sqlite_master
+            WHERE type in ('table', 'view') AND NOT name='sqlite_sequence'
+            ORDER BY name; args=None; alias=default
+(0.000) SELECT "django_migrations"."id", "django_migrations"."app", "django_migrations"."name", "django_migrations"."applied" FROM "django_migrations"; args=(); alias=default
+(0.001) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" WHERE "polls_survey"."id" = 1 LIMIT 21; args=(1,); alias=default
+(0.001) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (1) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(1,); alias=default
+(0.000) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 04:28:44.730120' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 04:28:44.730120', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.000) SELECT 1 AS "a" FROM "polls_surveyparticipant" WHERE ("polls_surveyparticipant"."survey_id" = 1 AND "polls_surveyparticipant"."user_id" = 2) LIMIT 1; args=(1, 1, 2); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" WHERE "polls_question"."survey_id" = 1 ORDER BY "polls_question"."order" ASC; args=(1,); alias=default
+[12/Dec/2024 13:28:44] "GET /surveys/1/ HTTP/1.1" 200 12324
+Not Found: /favicon.ico
+[12/Dec/2024 13:28:45] "GET /favicon.ico HTTP/1.1" 404 6512
+(0.001) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 04:29:00.552881' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 04:29:00.552881', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" ORDER BY "polls_category"."name" ASC; args=(); alias=default
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.001) SELECT "polls_surveyresponse"."id", "polls_surveyresponse"."survey_id", "polls_surveyresponse"."created_at" FROM "polls_surveyresponse" WHERE "polls_surveyresponse"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_surveyresponse"."created_at" DESC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_answer"."id", "polls_answer"."response_id", "polls_answer"."question_id" FROM "polls_answer" WHERE "polls_answer"."response_id" IN (10, 9, 8, 7, 6, 5, 4, 3, 2, 1); args=(10, 9, 8, 7, 6, 5, 4, 3, 2, 1); alias=default
+(0.000) SELECT ("polls_answer_selected_choices"."answer_id") AS "_prefetch_related_val_answer_id", "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_answer_selected_choices" ON ("polls_choice"."id" = "polls_answer_selected_choices"."choice_id") INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_answer_selected_choices"."answer_id" IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 12 LIMIT 21; args=(12,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 22 LIMIT 21; args=(22,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 10 LIMIT 21; args=(10,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 19 LIMIT 21; args=(19,); alias=default
+[12/Dec/2024 13:29:00] "GET / HTTP/1.1" 200 85127
+(0.001) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 04:29:06.107528' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 04:29:06.107528', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" ORDER BY "polls_category"."name" ASC; args=(); alias=default
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" WHERE "polls_survey"."category_id" = 6 ORDER BY "polls_survey"."start_date" DESC; args=(6,); alias=default
+[12/Dec/2024 13:29:06] "GET /?category=6 HTTP/1.1" 200 17015
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 04:29:07.769201' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 04:29:07.769201', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.001) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" ORDER BY "polls_category"."name" ASC; args=(); alias=default
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" WHERE "polls_survey"."category_id" = 30 ORDER BY "polls_survey"."start_date" DESC; args=(30,); alias=default
+[12/Dec/2024 13:29:07] "GET /?category=30 HTTP/1.1" 200 17015
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+Performing system checks...
+
+System check identified no issues (0 silenced).
+December 12, 2024 - 13:28:40
+Django version 5.1.3, using settings 'mysite.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+
+=== Debug Information ===
+
+Survey ID: 19
+Title: asd
+Description: asd
+- Question: asfd
+  Choices: ['asf', 'asf']
+
+Survey ID: 21
+Title: 18
+Description: 
+- Question: 18-1
+  Choices: ['18-1-1', '18-1-2', '18-1-3']
+
+Survey ID: 20
+Title: 17
+Description: 17の説明だよ
+- Question: 17-1
+  Choices: ['17-1-1', '17-1-2']
+- Question: 17-2
+  Choices: ['17-2-1', '17-2-2']
+
+Survey ID: 18
+Title: 16
+Description: カテゴリうまく実装できたかな
+- Question: 16-1
+  Choices: ['16-1-1', '16-1-2']
+- Question: 16-2
+  Choices: ['16-2-1', '16-2-2', '16-2-3']
+
+Survey ID: 1
+Title: jyg
+Description: jyg
+
+Survey ID: 17
+Title: 15
+Description: 
+- Question: 15-1
+  Choices: ['15-1-1', '15-1-2']
+- Question: 15-2
+  Choices: ['15-2-1', '15-2-2', '15-2-3']
+
+Survey ID: 16
+Title: 14
+Description: 
+- Question: 14
+  Choices: ['14-1-1', '14-1-2']
+- Question: 14-2
+  Choices: ['14-2-1', '14-2-2', '14-2-3']
+
+Survey ID: 15
+Title: 13
+Description: 
+- Question: 13-1
+  Choices: []
+- Question: 13-2
+  Choices: []
+
+Survey ID: 14
+Title: 12
+Description: 
+- Question: 12-1
+  Choices: []
+- Question: 12-2
+  Choices: []
+
+Survey ID: 13
+Title: 12
+Description: 
+- Question: 12-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 12-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 12
+Title: 11
+Description: 
+- Question: 11-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 11-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 11
+Title: 10
+Description: 
+- Question: 
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 10-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 10-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 10
+Title: 9
+Description: 
+
+Survey ID: 9
+Title: 8
+Description: 開発頑張ろう
+
+Survey ID: 8
+Title: 7
+Description: 7
+- Question: 7-1
+  Choices: []
+- Question: 7-2
+  Choices: []
+
+Survey ID: 7
+Title: 6
+Description: 
+- Question: 6-1
+  Choices: ['6-1-3', '6-1-1', '6-1-2']
+- Question: 6-2
+  Choices: ['6-2-3', '6-2-1', '6-2-2']
+
+Survey ID: 6
+Title: 5
+Description: 5
+- Question: 5-1
+  Choices: ['5-1-3', '5-1-1', '5-1-2']
+- Question: 5-2
+  Choices: ['5-2-3', '5-2-1', '5-2-2']
+
+Survey ID: 5
+Title: 4
+Description: 4
+
+Survey ID: 4
+Title: 3
+Description: 
+
+Survey ID: 3
+Title: survey2
+Description: test
+
+Survey ID: 2
+Title: survey1
+Description: テスト用
+
+=== Debug Information ===
+
+Survey ID: 19
+Title: asd
+Description: asd
+- Question: asfd
+  Choices: ['asf', 'asf']
+
+Survey ID: 21
+Title: 18
+Description: 
+- Question: 18-1
+  Choices: ['18-1-1', '18-1-2', '18-1-3']
+
+Survey ID: 20
+Title: 17
+Description: 17の説明だよ
+- Question: 17-1
+  Choices: ['17-1-1', '17-1-2']
+- Question: 17-2
+  Choices: ['17-2-1', '17-2-2']
+
+Survey ID: 18
+Title: 16
+Description: カテゴリうまく実装できたかな
+- Question: 16-1
+  Choices: ['16-1-1', '16-1-2']
+- Question: 16-2
+  Choices: ['16-2-1', '16-2-2', '16-2-3']
+
+Survey ID: 1
+Title: jyg
+Description: jyg
+
+Survey ID: 17
+Title: 15
+Description: 
+- Question: 15-1
+  Choices: ['15-1-1', '15-1-2']
+- Question: 15-2
+  Choices: ['15-2-1', '15-2-2', '15-2-3']
+
+Survey ID: 16
+Title: 14
+Description: 
+- Question: 14
+  Choices: ['14-1-1', '14-1-2']
+- Question: 14-2
+  Choices: ['14-2-1', '14-2-2', '14-2-3']
+
+Survey ID: 15
+Title: 13
+Description: 
+- Question: 13-1
+  Choices: []
+- Question: 13-2
+  Choices: []
+
+Survey ID: 14
+Title: 12
+Description: 
+- Question: 12-1
+  Choices: []
+- Question: 12-2
+  Choices: []
+
+Survey ID: 13
+Title: 12
+Description: 
+- Question: 12-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 12-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 12
+Title: 11
+Description: 
+- Question: 11-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 11-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 11
+Title: 10
+Description: 
+- Question: 
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 10-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 10-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 10
+Title: 9
+Description: 
+
+Survey ID: 9
+Title: 8
+Description: 開発頑張ろう
+
+Survey ID: 8
+Title: 7
+Description: 7
+- Question: 7-1
+  Choices: []
+- Question: 7-2
+  Choices: []
+
+Survey ID: 7
+Title: 6
+Description: 
+- Question: 6-1
+  Choices: ['6-1-3', '6-1-1', '6-1-2']
+- Question: 6-2
+  Choices: ['6-2-3', '6-2-1', '6-2-2']
+
+Survey ID: 6
+Title: 5
+Description: 5
+- Question: 5-1
+  Choices: ['5-1-3', '5-1-1', '5-1-2']
+- Question: 5-2
+  Choices: ['5-2-3', '5-2-1', '5-2-2']
+
+Survey ID: 5
+Title: 4
+Description: 4
+
+Survey ID: 4
+Title: 3
+Description: 
+
+Survey ID: 3
+Title: survey2
+Description: test
+
+Survey ID: 2
+Title: survey1
+Description: テスト用
+
+=== Debug Information ===
+
+Survey ID: 19
+Title: asd
+Description: asd
+- Question: asfd
+  Choices: ['asf', 'asf']
+
+Survey ID: 21
+Title: 18
+Description: 
+- Question: 18-1
+  Choices: ['18-1-1', '18-1-2', '18-1-3']
+
+Survey ID: 20
+Title: 17
+Description: 17の説明だよ
+- Question: 17-1
+  Choices: ['17-1-1', '17-1-2']
+- Question: 17-2
+  Choices: ['17-2-1', '17-2-2']
+
+Survey ID: 18
+Title: 16
+Description: カテゴリうまく実装できたかな
+- Question: 16-1
+  Choices: ['16-1-1', '16-1-2']
+- Question: 16-2
+  Choices: ['16-2-1', '16-2-2', '16-2-3']
+
+Survey ID: 1
+Title: jyg
+Description: jyg
+
+Survey ID: 17
+Title: 15
+Description: 
+- Question: 15-1
+  Choices: ['15-1-1', '15-1-2']
+- Question: 15-2
+  Choices: ['15-2-1', '15-2-2', '15-2-3']
+
+Survey ID: 16
+Title: 14
+Description: 
+- Question: 14
+  Choices: ['14-1-1', '14-1-2']
+- Question: 14-2
+  Choices: ['14-2-1', '14-2-2', '14-2-3']
+
+Survey ID: 15
+Title: 13
+Description: 
+- Question: 13-1
+  Choices: []
+- Question: 13-2
+  Choices: []
+
+Survey ID: 14
+Title: 12
+Description: 
+- Question: 12-1
+  Choices: []
+- Question: 12-2
+  Choices: []
+
+Survey ID: 13
+Title: 12
+Description: 
+- Question: 12-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 12-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 12
+Title: 11
+Description: 
+- Question: 11-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 11-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 11
+Title: 10
+Description: 
+- Question: 
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 10-1
+  Choices: ['選択肢 1', '選択肢 2']
+- Question: 10-2
+  Choices: ['選択肢 1', '選択肢 2']
+
+Survey ID: 10
+Title: 9
+Description: 
+
+Survey ID: 9
+Title: 8
+Description: 開発頑張ろう
+
+Survey ID: 8
+Title: 7
+Description: 7
+- Question: 7-1
+  Choices: []
+- Question: 7-2
+  Choices: []
+
+Survey ID: 7
+Title: 6
+Description: 
+- Question: 6-1
+  Choices: ['6-1-3', '6-1-1', '6-1-2']
+- Question: 6-2
+  Choices: ['6-2-3', '6-2-1', '6-2-2']
+
+Survey ID: 6
+Title: 5
+Description: 5
+- Question: 5-1
+  Choices: ['5-1-3', '5-1-1', '5-1-2']
+- Question: 5-2
+  Choices: ['5-2-3', '5-2-1', '5-2-2']
+
+Survey ID: 5
+Title: 4
+Description: 4
+
+Survey ID: 4
+Title: 3
+Description: 
+
+Survey ID: 3
+Title: survey2
+Description: test
+
+Survey ID: 2
+Title: survey1
+Description: テスト用
+
+=== Debug Information ===
+
+Survey ID: 19
+Title: asd
+Description: asd
+- Question: asfd
+  Choices: ['asf', 'asf']
+
+Survey ID: 21
+Title: 18
+Description: 
+- Question: 18-1
+  Choices: ['18-1-1', '18-1-2', '18-1-3']
+
+Survey ID: 20
+Title: 17
+Description: 17の説明だよ
+- Question: 17-1
+  Choices: ['17-1-1', '17-1-2']
+- Question: 17-2
+  Choices: ['17-2-1', '17-2-2']
+
+Survey ID: 18
+Title: 16
+Description: カテゴリうまく実装できたかな
+- Question: 16-1
+  Choices: ['16-1-1', '16-1-2']
+- Question: 16-2
+  Choices: ['16-2-1', '16-2-2', '16-2-3']
+
+Survey ID: 1
+Title: jyg
+Description: jyg
+
+Survey ID: 17
+Title: 15
+Description: 
+- Question: 15-1
+  Choices: ['15-1-1', '15-1-2']
+- Question: 15-2
+  Choices: ['15-2-1', '15-2-2', '15-2-3']
+
+Survey ID: 16
+Title: 14
+Description: 
+- Question: 14
+  Choices: ['14-1-1', '14-1-2']
+- Question: 14-2
+  Choices: ['14-2-1', '14-2-2', '14-2-3']
+
+Survey ID: 15
+Title: 13
+Description: 
+- Question: 13-1
+  Choices: []
+- Question: 13-2
+  Choices: []
+
+Survey ID: 14
+Title: 12
+Description: 
+- Question: 12-1
+  Choices: []
+- Question: 12-2
+  Choices: []
+
+Survey ID: 13
+Title: 12(0.000) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 04:29:09.219698' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 04:29:09.219698', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" ORDER BY "polls_category"."name" ASC; args=(); alias=default
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" WHERE "polls_survey"."category_id" = 10 ORDER BY "polls_survey"."start_date" DESC; args=(10,); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (20) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(20,); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (25, 26) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(25, 26); alias=default
+(0.000) SELECT "polls_surveyresponse"."id", "polls_surveyresponse"."survey_id", "polls_surveyresponse"."created_at" FROM "polls_surveyresponse" WHERE "polls_surveyresponse"."survey_id" IN (20) ORDER BY "polls_surveyresponse"."created_at" DESC; args=(20,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 10 LIMIT 21; args=(10,); alias=default
+[12/Dec/2024 13:29:09] "GET /?category=10 HTTP/1.1" 200 20243
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 04:29:11.054743' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 04:29:11.054743', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" ORDER BY "polls_category"."name" ASC; args=(); alias=default
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "polls_surveyresponse"."id", "polls_surveyresponse"."survey_id", "polls_surveyresponse"."created_at" FROM "polls_surveyresponse" WHERE "polls_surveyresponse"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_surveyresponse"."created_at" DESC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_answer"."id", "polls_answer"."response_id", "polls_answer"."question_id" FROM "polls_answer" WHERE "polls_answer"."response_id" IN (10, 9, 8, 7, 6, 5, 4, 3, 2, 1); args=(10, 9, 8, 7, 6, 5, 4, 3, 2, 1); alias=default
+(0.000) SELECT ("polls_answer_selected_choices"."answer_id") AS "_prefetch_related_val_answer_id", "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_answer_selected_choices" ON ("polls_choice"."id" = "polls_answer_selected_choices"."choice_id") INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_answer_selected_choices"."answer_id" IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 12 LIMIT 21; args=(12,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 22 LIMIT 21; args=(22,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 10 LIMIT 21; args=(10,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 19 LIMIT 21; args=(19,); alias=default
+[12/Dec/2024 13:29:11] "GET /? HTTP/1.1" 200 85127
+(0.002) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."current_responses" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (17, 18, 16, 19, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(17, 18, 16, 19, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 04:29:18.963659' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 04:29:18.963659', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" ORDER BY "polls_category"."name" ASC; args=(); alias=default
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."current_responses" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (17, 18, 16, 19, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(17, 18, 16, 19, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "polls_surveyresponse"."id", "polls_surveyresponse"."survey_id", "polls_surveyresponse"."created_at" FROM "polls_surveyresponse" WHERE "polls_surveyresponse"."survey_id" IN (17, 18, 16, 19, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21) ORDER BY "polls_surveyresponse"."created_at" DESC; args=(17, 18, 16, 19, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20, 21); alias=default
+(0.000) SELECT "polls_answer"."id", "polls_answer"."response_id", "polls_answer"."question_id" FROM "polls_answer" WHERE "polls_answer"."response_id" IN (10, 9, 8, 7, 6, 5, 4, 3, 2, 1); args=(10, 9, 8, 7, 6, 5, 4, 3, 2, 1); alias=default
+(0.000) SELECT ("polls_answer_selected_choices"."answer_id") AS "_prefetch_related_val_answer_id", "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_answer_selected_choices" ON ("polls_choice"."id" = "polls_answer_selected_choices"."choice_id") INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_answer_selected_choices"."answer_id" IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 19 LIMIT 21; args=(19,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 12 LIMIT 21; args=(12,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 10 LIMIT 21; args=(10,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 22 LIMIT 21; args=(22,); alias=default
+[12/Dec/2024 13:29:18] "GET /?sort=-current_responses HTTP/1.1" 200 85127
+(0.001) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 04:29:20.476756' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 04:29:20.476756', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" ORDER BY "polls_category"."name" ASC; args=(); alias=default
+(0.000) SELECT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" ORDER BY "polls_survey"."start_date" DESC; args=(); alias=default
+(0.000) SELECT "polls_question"."id", "polls_question"."survey_id", "polls_question"."question_text", "polls_question"."question_type", "polls_question"."is_required", "polls_question"."order" FROM "polls_question" INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_question"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_choice"."question_id" IN (27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(27, 25, 26, 24, 22, 23, 20, 21, 18, 19, 16, 17, 14, 15, 12, 13, 10, 11, 7, 8, 9, 5, 6, 3, 4, 1, 2); alias=default
+(0.000) SELECT "polls_surveyresponse"."id", "polls_surveyresponse"."survey_id", "polls_surveyresponse"."created_at" FROM "polls_surveyresponse" WHERE "polls_surveyresponse"."survey_id" IN (19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2) ORDER BY "polls_surveyresponse"."created_at" DESC; args=(19, 21, 20, 18, 1, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2); alias=default
+(0.000) SELECT "polls_answer"."id", "polls_answer"."response_id", "polls_answer"."question_id" FROM "polls_answer" WHERE "polls_answer"."response_id" IN (10, 9, 8, 7, 6, 5, 4, 3, 2, 1); args=(10, 9, 8, 7, 6, 5, 4, 3, 2, 1); alias=default
+(0.000) SELECT ("polls_answer_selected_choices"."answer_id") AS "_prefetch_related_val_answer_id", "polls_choice"."id", "polls_choice"."question_id", "polls_choice"."choice_text", "polls_choice"."votes", "polls_choice"."order" FROM "polls_choice" INNER JOIN "polls_answer_selected_choices" ON ("polls_choice"."id" = "polls_answer_selected_choices"."choice_id") INNER JOIN "polls_question" ON ("polls_choice"."question_id" = "polls_question"."id") INNER JOIN "polls_survey" ON ("polls_question"."survey_id" = "polls_survey"."id") WHERE "polls_answer_selected_choices"."answer_id" IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19) ORDER BY "polls_survey"."created_at" DESC, "polls_question"."order" ASC, "polls_choice"."order" ASC; args=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 12 LIMIT 21; args=(12,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 22 LIMIT 21; args=(22,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 10 LIMIT 21; args=(10,); alias=default
+(0.000) SELECT "polls_category"."id", "polls_category"."name", "polls_category"."description", "polls_category"."created_at" FROM "polls_category" WHERE "polls_category"."id" = 19 LIMIT 21; args=(19,); alias=default
+[12/Dec/2024 13:29:20] "GET /? HTTP/1.1" 200 85127
+(0.001) SELECT "django_session"."session_key", "django_session"."session_data", "django_session"."expire_date" FROM "django_session" WHERE ("django_session"."expire_date" > '2024-12-12 05:15:12.576578' AND "django_session"."session_key" = 'xopm4zfbghwpsf4wny3id43mw9habj6h') LIMIT 21; args=('2024-12-12 05:15:12.576578', 'xopm4zfbghwpsf4wny3id43mw9habj6h'); alias=default
+(0.000) SELECT "auth_user"."id", "auth_user"."password", "auth_user"."last_login", "auth_user"."is_superuser", "auth_user"."username", "auth_user"."first_name", "auth_user"."last_name", "auth_user"."email", "auth_user"."is_staff", "auth_user"."is_active", "auth_user"."date_joined" FROM "auth_user" WHERE "auth_user"."id" = 2 LIMIT 21; args=(2,); alias=default
+(0.001) SELECT DISTINCT "polls_survey"."id", "polls_survey"."title", "polls_survey"."description", "polls_survey"."created_at", "polls_survey"."start_date", "polls_survey"."end_date", "polls_survey"."required_responses", "polls_survey"."current_responses", "polls_survey"."status", "polls_survey"."category_id", "polls_survey"."image" FROM "polls_survey" INNER JOIN "polls_surveyparticipant" ON ("polls_survey"."id" = "polls_surveyparticipant"."survey_id") WHERE (NOT "polls_surveyparticipant"."is_answered" AND "polls_surveyparticipant"."user_id" = 2 AND "polls_survey"."status" = 'active') ORDER BY "polls_survey"."created_at" DESC; args=(2, 'active'); alias=default
+[12/Dec/2024 14:15:12] "GET /surveys/active/ HTTP/1.1" 200 2
