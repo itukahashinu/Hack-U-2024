@@ -485,9 +485,15 @@ def submit_survey_response(request, survey_id):
             # デバッグ出力
             print(f"Received response data for survey {survey_id}:")
             print(json.dumps(data, indent=2, ensure_ascii=False))
+            
+            #######################
+            # この下のコードが動かない（Surveyが変）
 
             # アンケートの取得
             survey = get_object_or_404(Survey, pk=survey_id)
+            
+            # ここまで
+            #######################
             
             # アンケートのステータスチェック
             if survey.status != 'active':
@@ -792,23 +798,6 @@ def submit_survey(request, survey_id):
     return redirect('polls:survey_detail', survey_id=survey_id)
 
 ##########################################
-
-def submit_survey_response(request, survey_id):
-    try:
-        with transaction.atomic():
-            # サーベイ回答の処理
-            
-            # 参加者の状態を更新
-            SurveyParticipant.objects.filter(
-                survey_id=survey_id,
-                user=request.user
-            ).update(
-                is_answered=True,
-                participation_date=timezone.now()
-            )
-    except Exception as e:
-        # エラーハンドリング
-        pass
 
 @login_required
 def get_active_surveys(request):
