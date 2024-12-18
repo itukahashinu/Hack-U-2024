@@ -65,6 +65,9 @@ class Survey(models.Model):
         verbose_name='Creator',
         null=True
     )
+
+
+
     @property
     def progress(self):
         if self.required_responses == 0:

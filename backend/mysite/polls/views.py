@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, Http404, JsonResponse
+from django.http import HttpResponseRedirect, Http404, JsonResponse, HttpResponse
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db import transaction, models
@@ -27,24 +27,31 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 import re
 from django.db.models import Q
-
+from django.core.exceptions import PermissionDenied
+import csv
+from datetime import datetime as dt  # 別名でインポート
 
 
 def index(request):
     # パラメーターの取得
     search_query = request.GET.get('q', '')
     category_id = request.GET.get('category', '')
-    sort_by = request.GET.get('sort', 'new')  # ソート条件の取得
+    sort_by = request.GET.get('sort', '-start_date')  # ソート条件の取得
     
-        # Surveyモデルから全てのデータを取得（最新順）
-    surveys = Survey.objects.prefetch_related('questions__choices').order_by('-created_at')
+    # Surveyモデルから全てのデータを取得（sort_byで指定した順）
+    if sort_by == "-start_date" or sort_by == "-current_responses":
+        surveys = Survey.objects.prefetch_related('questions__choices').order_by(sort_by)
+    elif sort_by == "-end_date":
+        surveys = Survey.objects.prefetch_related('questions__choices').order_by(sort_by).reverse()
     
     # デバッグ情報
+
     
     surveys = Survey.objects.prefetch_related(
         'questions__choices',
         'responses__answers__selected_choices'
     ).order_by('-created_at')
+
     
     # 検索クエリがある場合、フィルタリング
     if search_query:
@@ -136,6 +143,7 @@ def create_survey(request):
                     required_responses=request.POST.get('required_responses', 0),
                     status=request.POST['status'],
                     category_id=request.POST.get('category'),
+                    creator=request.user
                 )
 
                 # 質問の処理
@@ -176,7 +184,9 @@ def create_survey(request):
                                 print(f"Created choice: {choice_text}")
 
                 messages.success(request, 'アンケートが作成されました。')
-                return redirect('polls:index')  # インデックスペーにリダイレクト
+
+                return redirect('polls:index')  # インデックスページにリダイレクト
+
 
         except Exception as e:
             print(f"Error creating survey: {e}")
@@ -213,7 +223,9 @@ class SurveyViewSet(viewsets.ModelViewSet):
         """Google Formを作成するアクション"""
         survey = self.get_object()
         try:
-            # Google Form APIのモック関数呼び出し
+
+            # Google Form APIのモック関数を呼び出し
+
             form_id = create_google_form_mock(survey)
             survey.google_form_id = form_id
             survey.save()
@@ -387,7 +399,7 @@ def survey_detail_view(request, survey_id):
         pk=survey_id
     )
     
-    # 自分が参加者かどうかをチェック
+    # 自が参加者かどうかをチェック
     is_participant = SurveyParticipant.objects.filter(
         survey=survey,
         user=request.user
@@ -409,7 +421,7 @@ def survey_detail(request, survey_id):
     # prefetch_relatedを使用して関連データを効率的に取得
     survey = get_object_or_404(
         Survey.objects.prefetch_related(
-            'questions__choices'  # 質問と選択  を一度に取得
+            'questions__choices'  # 質問と選択肢を一度に取得
         ),
         id=survey_id
     )
@@ -585,7 +597,7 @@ def survey_create_view(request):
                         order=q_data['order']
                     )
                     
-                    # 選  肢を保存
+                    # 選択肢を保存
                     for i, choice_text in enumerate(q_data['choices']):
                         Choice.objects.create(
                             question=question,
@@ -786,7 +798,7 @@ def submit_survey(request, survey_id):
             survey.current_responses = F('current_responses') + 1
             survey.save()
             
-            messages.success(request, 'アンケートの回答を送信しました。ご協力ありがとうございます。')
+            messages.success(request, 'アンケートの回答を送信しまた。ご協力ありがとうございます。')
             return redirect('polls:index')
             
     except ValueError as e:
@@ -855,5 +867,6 @@ def get_active_surveys(request):
             return render(request, 'polls/index.html', {
                 'index': [selected_survey]  # 選択されたアンケートを渡す
             })
+
 
     return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)

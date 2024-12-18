@@ -39,11 +39,13 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="relative">
                     <input type="text" 
-                        id="searchInput" 
-                        placeholder="アンケートを検索..." 
-                        value="{{ search_query }}"
-                        class="w-full pl-3 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        style="text-align: left;">
+
+                            id="searchInput" 
+                            placeholder="アンケートを検索..." 
+                            value="{{ search_query }}"
+                            class="w-full pl-3 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            style="text-align: left;">
+
                     <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <select id="categorySelect"
@@ -58,10 +60,9 @@
                 </select>
                 <select id="sortSelect"
                         class="w-full py-3 px-4 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="popular">人気順</option>
-                    <option value="new">新着順</option>
-                    <option value="endingSoon">終了が近い順</option>
-                    <option value="mostResponses">回答数順</option>
+                    <option value="-start_date">新着順</option>
+                    <option value="-end_date">終了が近い順</option>
+                    <option value="-current_responses">回答数順</option>
                 </select>
             </div>
         </div>
@@ -125,7 +126,7 @@
                     </div>
                 </a>
 
-                <div class="px-6 py-4 bg-gray-50 border-t flex justify-between text-sm">
+                <div class="px-6 py-4 bg-gray-50 border-t flex justify-between text-sm"><!-- tkm編集-->
                     <div class="flex items-center space-x-4">
                         <span class="flex items-center text-gray-600">
                             <i class="fas fa-users mr-2"></i>
@@ -140,10 +141,18 @@
                             {% endif %}
                         </span>
                     </div>
-                    <a href="{% url 'polls:survey_detail' survey.id %}"
-                        class="text-blue-600 hover:text-blue-800 font-medium">
-                        詳細を見る →
-                    </a>
+                    <div class="flex items-center space-x-2">
+                        {% if user == survey.creator %}
+                            <a href="{% url 'polls:survey_results' survey.id %}"
+                                class="text-green-600 hover:text-green-800 font-medium mr-4">
+                                <i class="fas fa-chart-bar mr-1"></i>集計を見る
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'polls:survey_detail' survey.id %}"
+                            class="text-blue-600 hover:text-blue-800 font-medium">
+                            詳細を見る →
+                        </a>
+                    </div>
                 </div>
             </div>
             {% endfor %}
@@ -153,6 +162,7 @@
     </main>
 
     <script>
+
         function showUnansweredSurveys() {
             console.log('フラグ1: showUnansweredSurveys関数開始');
             document.getElementById('popup').style.display = 'block';
@@ -291,11 +301,13 @@
             console.log('フラグ11: updateSearch関数開始');
             const searchQuery = document.getElementById('searchInput').value;
             const categoryId = document.getElementById('categorySelect').value;
+            const sortID = document.getElementById('sortSelect').value;
             
             // URLパラメータの構築
             const params = new URLSearchParams();
             if (searchQuery) params.set('q', searchQuery);
             if (categoryId !== 'all') params.set('category', categoryId);
+            if (sortID !== '-start_date') params.set('sort', sortID);
             
             // ページをリロード
             window.location.href = `${window.location.pathname}?${params.toString()}`;
@@ -311,6 +323,7 @@
         });
 
         document.getElementById('categorySelect').addEventListener('change', updateSearch);
+        document.getElementById('sortSelect').addEventListener('change', updateSearch);
 
         // 検索フォームの初期値を設定
         window.addEventListener('load', function() {
@@ -318,11 +331,15 @@
             const urlParams = new URLSearchParams(window.location.search);
             const searchQuery = urlParams.get('q');
             const category = urlParams.get('category');
+
             if (searchQuery) {
                 document.getElementById('searchInput').value = searchQuery;
             }
             if (category) {
                 document.getElementById('categorySelect').value = category;
+            }
+            if (sort) {
+                document.getElementById('sortSelect').value = sort;
             }
         });
 
