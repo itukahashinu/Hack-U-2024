@@ -24,8 +24,7 @@
     <div id="popup" style="display:none;">
         <div id="popup-content">
             <span onclick="closePopup()" style="cursor:pointer;">&times; 閉じる</span>
-            <div id="survey-container" data-id=""></div>
-            <button id="submitSurvey" style="display:none;" onclick="submitSurvey()">回答を送信</button>
+            <div id="survey-container"></div>
         </div>
     </div>
 
@@ -35,11 +34,11 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="relative">
                     <input type="text" 
-                        id="searchInput" 
-                        placeholder="アンケートを検索..." 
-                        value="{{ search_query }}"
-                        class="w-full pl-3 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        style="text-align: left;">
+                            id="searchInput" 
+                            placeholder="アンケートを検索..." 
+                            value="{{ search_query }}"
+                            class="w-full pl-3 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            style="text-align: left;">
                     <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                 </div>
                 <select id="categorySelect"
@@ -156,63 +155,35 @@
     </main>
 
     <script>
+        // 既存のJavaScriptコードを維持
+
         function showUnansweredSurveys() {
-            console.log('フラグ1: showUnansweredSurveys関数開始');
             document.getElementById('popup').style.display = 'block';
             // AJAXリクエストで未回答のアンケートを取得
-            fetch('/get_active_surveys/', {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })  // 未回答のアンケートを取得するURL
-                .then(response => {
-                    console.log('フラグ2: レスポンス受信');
-                    console.log('Response:', response);  // レスポンスを確認
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
+            fetch('/surveys/active/')  // 未回答のアンケートを取得するURL
+                .then(response => response.json())
                 .then(data => {
-                    console.log('フラグ3: JSONデータ受信');
-                    console.log('Data:', data);  // データを確認
                     const container = document.getElementById('survey-container');
-                    container.dataset.id = data.id;  // surveyIdを設定
                     container.innerHTML = '';  // 既存の内容をクリア
-
-                    if (Object.keys(data).length > 0) {  // データが存在するか確認
-                        console.log('フラグ4: データが存在する');
-                        
+                    data.forEach(survey => {
                         const surveyDiv = document.createElement('div');
-                        surveyDiv.innerHTML = `<h2>${data.title}</h2><p>${data.description}</p>`;
-                        
+                        surveyDiv.innerHTML = `<h2>${survey.title}</h2><p>${survey.description}</p>`;
                         // 質問を追加
-                        data.questions.forEach(question => {
+                        survey.questions.forEach(question => {
                             surveyDiv.innerHTML += `<p>${question.text}</p>`;
                             question.choices.forEach(choice => {
                                 surveyDiv.innerHTML += `<label><input type="radio" name="question_${question.id}" value="${choice.id}">${choice.text}</label><br>`;
                             });
                         });
-
                         container.appendChild(surveyDiv);
-
-                        console.log('フラグ5: すべてのアンケートを表示');
-                        document.getElementById('submitSurvey').style.display = 'block';  // 送信ボタンを表示
-                    } else {
-                        console.log('フラグ6: データが存在しない');
-                        container.innerHTML = '<p>未回答のアンケートはありません。</p>';
-                    }
-                })
-                .catch(error => {
-                    console.error('フラグ7: エラー発生', error);
+                    });
                 });
         }
 
         function closePopup() {
-            console.log('フラグ8: closePopup関数開始');
             document.getElementById('popup').style.display = 'none';
         }
+
         
         // submitSurvey 関数をグローバルスコープで定義
         function submitSurvey() {
@@ -291,8 +262,8 @@
         }
 
         // 検索とフィルタリングの処理
+
         function updateSearch() {
-            console.log('フラグ11: updateSearch関数開始');
             const searchQuery = document.getElementById('searchInput').value;
             const categoryId = document.getElementById('categorySelect').value;
             const sortID = document.getElementById('sortSelect').value;
@@ -309,7 +280,6 @@
 
         // イベントリスナーの設定
         document.getElementById('searchInput').addEventListener('keyup', function(e) {
-            console.log('フラグ12: キーが入力された');
             // Enterキーが押されたら検索を実行
             if (e.key === 'Enter') {
                 updateSearch();
@@ -321,7 +291,6 @@
 
         // 検索フォームの初期値を設定
         window.addEventListener('load', function() {
-            console.log('フラグ13: ページがロードされた');
             const urlParams = new URLSearchParams(window.location.search);
             const searchQuery = urlParams.get('q');
             const category = urlParams.get('category');

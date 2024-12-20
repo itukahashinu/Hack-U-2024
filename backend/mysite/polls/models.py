@@ -65,6 +65,7 @@ class Survey(models.Model):
         verbose_name='Creator',
         null=True
     )
+
     @property
     def progress(self):
         if self.required_responses == 0:
@@ -91,9 +92,8 @@ class Survey(models.Model):
 
     def save(self, *args, **kwargs):
         # 現在の日時
-        now = timezone.localtime()
+        now = timezone.now()
         
-        print("かかか:"+self.status,now,self.end_date)
         # 新規作成時はステータスの自動設定を行わない
         if not self.pk:  # 新規作成時
             super().save(*args, **kwargs)
@@ -110,7 +110,7 @@ class Survey(models.Model):
         """
         現在の日時に基づいてステータスを更新する
         """
-        now = timezone.localtime()
+        now = timezone.now()
         if self.status != 'paused':  # 一時停止中は自動更新しない
             if now < self.start_date:
                 self.status = 'draft'
@@ -118,9 +118,6 @@ class Survey(models.Model):
                 self.status = 'closed'
             elif self.start_date <= now <= self.end_date:
                 self.status = 'active'
-        
-        print("ききき:"+self.status,now,self.end_date)
-        
         self.save()
 
     def get_questions(self):
@@ -173,6 +170,10 @@ class Question(models.Model):
         ordering = ['survey', 'order']
 
     def save(self, *args, **kwargs):
+        # デバッグ情報を追加
+        print(f"\nSaving Question: {self.question_text}")
+        print(f"Survey: {self.survey.title}")
+        print(f"Choices count: {self.choices.count() if self.pk else 0}")
         super().save(*args, **kwargs)
 
     def get_choices(self):
@@ -216,7 +217,9 @@ class Choice(models.Model):
         ordering = ['question', 'order']
 
     def save(self, *args, **kwargs):
-
+        # デバッグ情報を追加
+        print(f"\nSaving Choice: {self.choice_text}")
+        print(f"Question: {self.question.question_text}")
         super().save(*args, **kwargs)
 
 class SurveyResponse(models.Model):

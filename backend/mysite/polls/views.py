@@ -32,7 +32,6 @@ import csv
 from datetime import datetime as dt  # 別名でインポート
 
 
-
 def index(request):
     # パラメーターの取得
     search_query = request.GET.get('q', '')
@@ -46,7 +45,14 @@ def index(request):
         surveys = Survey.objects.prefetch_related('questions__choices').order_by(sort_by).reverse()
     
     # デバッグ情報
+    print("\n=== Debug Information ===")
+    for survey in surveys:
+        print(f"\nSurvey: {survey.title}")
+        print(f"Creator: {survey.creator}")
+        print(f"Current User: {request.user}")
+        print(f"Is Creator: {survey.creator == request.user}")
     
+
     surveys = Survey.objects.prefetch_related(
         'questions__choices',
         'responses__answers__selected_choices'
@@ -58,6 +64,7 @@ def index(request):
         print(f"Current User: {request.user}")
         print(f"Is Creator: {survey.creator == request.user}")
     
+
     if sort_by == "-start_date" or sort_by == "-current_responses":
         surveys = Survey.objects.prefetch_related(
             'questions__choices',
@@ -155,7 +162,7 @@ def create_survey(request):
                     title=request.POST['title'],
                     description=request.POST.get('description', ''),
                     start_date=request.POST['start_date'],
-                    end_date=datetime.datetime.strptime(request.POST['end_date'], '%Y-%m-%dT%H:%M'),
+                    end_date=request.POST['end_date'],
                     required_responses=request.POST.get('required_responses', 0),
                     status=request.POST['status'],
                     category_id=request.POST.get('category'),
@@ -200,7 +207,7 @@ def create_survey(request):
                                 print(f"Created choice: {choice_text}")
 
                 messages.success(request, 'アンケートが作成されました。')
-                return redirect('polls:index')  # インデックスペーにリダイレクト
+                return redirect('polls:index')  # インデックスページにリダイレクト
 
         except Exception as e:
             print(f"Error creating survey: {e}")
@@ -237,7 +244,7 @@ class SurveyViewSet(viewsets.ModelViewSet):
         """Google Formを作成するアクション"""
         survey = self.get_object()
         try:
-            # Google Form APIのモック関数呼び出し
+            # Google Form APIのモック関数を呼び出し
             form_id = create_google_form_mock(survey)
             survey.google_form_id = form_id
             survey.save()
@@ -509,15 +516,9 @@ def submit_survey_response(request, survey_id):
             # デバッグ出力
             print(f"Received response data for survey {survey_id}:")
             print(json.dumps(data, indent=2, ensure_ascii=False))
-            
-            #######################
-            # この下のコードが動かない（Surveyが変）
 
             # アンケートの取得
             survey = get_object_or_404(Survey, pk=survey_id)
-            
-            # ここまで
-            #######################
             
             # アンケートのステータスチェック
             if survey.status != 'active':
@@ -526,7 +527,7 @@ def submit_survey_response(request, survey_id):
                 }, status=400)
 
             # 回答データの検証
-            answers = data.get('answers', {})
+            answers = data.get('answers', [])
             if not answers:
                 return JsonResponse({
                     'error': '回答が選択されていません。'
@@ -534,7 +535,7 @@ def submit_survey_response(request, survey_id):
 
             # 必須回答のチェック
             required_questions = survey.questions.filter(is_required=True).values_list('id', flat=True)
-            answered_questions = set(answers.keys())  # 質問IDをキーとして使用
+            answered_questions = {answer['question_id'] for answer in answers}
             missing_required = set(required_questions) - answered_questions
             
             if missing_required:
@@ -546,7 +547,10 @@ def submit_survey_response(request, survey_id):
             # 回答を保存
             response = SurveyResponse.objects.create(survey=survey)
             
-            for question_id, choice_id in answers.items():
+            for answer_data in answers:
+                question_id = answer_data['question_id']
+                choice_ids = answer_data.get('choice_ids', [])
+                
                 question = survey.questions.get(id=question_id)
                 answer = Answer.objects.create(
                     response=response,
@@ -554,13 +558,14 @@ def submit_survey_response(request, survey_id):
                 )
                 
                 # 選択肢の保存と投票数の更新
-                choice = Choice.objects.select_for_update().get(
-                    id=choice_id,
-                    question=question
-                )
-                choice.votes = F('votes') + 1
-                choice.save()
-                answer.selected_choices.add(choice)
+                for choice_id in choice_ids:
+                    choice = Choice.objects.select_for_update().get(
+                        id=choice_id,
+                        question=question
+                    )
+                    choice.votes = F('votes') + 1
+                    choice.save()
+                    answer.selected_choices.add(choice)
 
             # 回答数を更新
             survey.current_responses = F('current_responses') + 1
@@ -777,7 +782,7 @@ def submit_survey(request, survey_id):
     
     try:
         with transaction.atomic():
-            # 回答レコード���作成
+            # 回答レコードを作成
             response = SurveyResponse.objects.create(
                 survey=survey
             )
@@ -823,62 +828,106 @@ def submit_survey(request, survey_id):
 
 ##########################################
 
-@login_required
+def submit_survey_response(request, survey_id):
+    try:
+        with transaction.atomic():
+            # サーベイ回答の処理
+            
+            # 参加者の状態を更新
+            SurveyParticipant.objects.filter(
+                survey_id=survey_id,
+                user=request.user
+            ).update(
+                is_answered=True,
+                participation_date=timezone.now()
+            )
+    except Exception as e:
+        # エラーハンドリング
+        pass
+
+def unanswered_surveys(request):
+    # 現在のユーザーが未回答の進行中のアンケートを取得
+    unanswered_surveys = Survey.objects.filter(
+        id__in=SurveyParticipant.objects.filter(
+            user=request.user,
+            is_answered=False
+        ).values_list('survey_id', flat=True),
+        status='active'  # ステータスが進行中のアンケート
+    ).distinct()  # 重複を排除
+
+    return render(request, 'polls/unanswered_surveys.html', {
+        'unanswered_surveys': unanswered_surveys
+    })
+
 def get_active_surveys(request):
-    """現在のユーザーが未回答かつ進行中のアンケートを取得するAPIまたはHTMLを返す"""
+    # 現在のユーザーが未回答かつ回答可能なアンケートを取得
     unanswered_surveys = Survey.objects.filter(
         participants_tracking__user=request.user,
         participants_tracking__is_answered=False,
         status='active'  # ステータスが進行中のアンケート
     ).distinct()
+
+    # アンケートの情報をJSON形式で返す
+    surveys_data = [{
+        'id': survey.id,
+        'title': survey.title,
+        'description': survey.description,
+        'questions': [{
+            'id': question.id,
+            'text': question.question_text,
+            'type': question.question_type,
+            'choices': [{
+                'id': choice.id,
+                'text': choice.choice_text
+            } for choice in question.get_choices()]
+        } for question in survey.get_questions()]
+    } for survey in unanswered_surveys]
+
+    return JsonResponse(surveys_data, safe=False)
+
+@login_required
+def survey_results(request, survey_id):
+    survey = get_object_or_404(Survey, pk=survey_id)
     
-    print("あああ:",end="")
-    print(unanswered_surveys)
-    # AJAXリクエストかどうかをヘッダーで判定
-    is_ajax_request = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-
-    # 最も古いアンケートを選択するロジック
-    if not unanswered_surveys:
-        if is_ajax_request:  # AJAXリクエストの場合
-            return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
-        else:  # 通常のリクエストの場合
-            return render(request, 'polls/index.html', {
-                'index': []
-            })
-
-    selected_survey = min(unanswered_surveys, key=lambda survey: survey.end_date)  # 最も古い作成日時のアンケートを返す
-
-    print("いいい:",end="")
-    print(selected_survey)
-    if selected_survey:
-        # 選択されたアンケートの情報をJSON形式で返す
-        survey_data = {
-            'id': selected_survey.id,
-            'title': selected_survey.title,
-            'description': selected_survey.description,
-            'questions': [{
-                'id': question.id,
-                'text': question.question_text,
-                'type': question.question_type,
-                'choices': [{
-                    'id': choice.id,
-                    'text': choice.choice_text
-                } for choice in question.get_choices()]
-            } for question in selected_survey.get_questions()]
-        }
+    # 作成者でない場合はアクセス拒否
+    if request.user != survey.creator:
+        raise PermissionDenied
+    
+    # 質問と選択肢を取得し、各選択肢の投票数を計算
+    questions = []
+    for question in survey.questions.all().prefetch_related('choices', 'answers__selected_choices'):
+        choices_data = []
+        total_votes = 0
         
-        print("ううう:",end="")
-        print(survey_data)
-        if is_ajax_request:  # AJAXリクエストの場合
-            print("えええ:",end="")
-            print("AJAXリクエスト")
-            return JsonResponse(survey_data, safe=False)
-        else:  # 通常のリクエストの場合
-            print("おおお:",end="")
-            print("通常のリクエスト")
-            return render(request, 'polls/index.html', {
-                'index': [selected_survey]  # 選択されたアンケートを渡す
+        # 各選択肢の投票数を集計
+        for choice in question.choices.all():
+            votes = choice.answers.count()  # この選択肢が選ばれた回数
+            total_votes += votes
+            choices_data.append({
+                'choice_text': choice.choice_text,
+                'votes': votes
             })
+        
+        questions.append({
+            'question_text': question.question_text,
+            'choices': choices_data,
+            'total_votes': total_votes
+        })
+        
+        # デバッグ情報
+        print(f"\nQuestion: {question.question_text}")
+        print(f"Total votes: {total_votes}")
+        for choice in choices_data:
+            print(f"- {choice['choice_text']}: {choice['votes']} votes")
+    
+    context = {
+        'survey': survey,
+        'questions': questions,
+        'total_responses': survey.current_responses,
+    }
+    
+    return render(request, 'polls/survey_results.html', context)
+
 
     return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
     return JsonResponse(surveys_data, safe=False)
@@ -925,6 +974,7 @@ def survey_results(request, survey_id):
     }
     
     return render(request, 'polls/survey_results.html', context)
+
 
 @login_required
 def export_survey_results(request, survey_id):
