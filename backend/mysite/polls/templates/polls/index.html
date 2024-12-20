@@ -8,13 +8,9 @@
             <h1 class="text-4xl font-bold mb-4">みんなのアンケート</h1>
             <p class="text-xl opacity-90 mb-8">簡単に作成、共有、回答できるアンケートプラットフォーム</p>
             {% if user.is_authenticated %}
-                <a href="{% url 'polls:survey_create' %}"
-                    class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
-                    <i class="fas fa-plus mr-2"></i>新規アンケート作成
-                </a>
                 <button onclick="showUnansweredSurveys()"
                     class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ml-4">
-                    <i class="fas fa-eye mr-2"></i>ポップアップ表示
+                    <i class="fas fa-eye mr-2"></i>新規アンケート作成
                 </button>
             {% else %}
                 <a href="{% url 'signup' %}"
@@ -267,6 +263,7 @@
             })
             .then(data => {
                 console.log('フラグ10: 回答が送信されました', data);
+                location.replace("/surveys/create/")
                 closePopup();
             })
             .catch(error => {
