@@ -18,6 +18,11 @@ main_urlpatterns = [
     path('surveys/<int:survey_id>/response/', views.survey_response_view, name='survey_response'),
     path('survey/<int:survey_id>/update-status/', views.update_survey_status, name='update_survey_status'),
     path('survey/<int:survey_id>/submit/', views.submit_survey, name='submit_survey'),
+
+    path('get_active_surveys/', views.get_active_surveys, name='get_active_surveys'),
+    path('submit_survey_response/<int:survey_id>/', views.submit_survey, name='submit_survey_response'),
+
+
     path('surveys/active/', views.get_active_surveys, name='active_surveys'),
     path('surveys/<int:survey_id>/results/', views.survey_results, name='survey_results'),
 ]

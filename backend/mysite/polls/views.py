@@ -31,32 +31,6 @@ from django.core.exceptions import PermissionDenied
 import csv
 from datetime import datetime as dt  # 別名でインポート
 
-def create_google_form_mock(survey_data):
-    """
-    Google Forms APIのモック関数
-    """
-    # 既存のバッグ出力を強化
-    print("\n=== Google Form Creation Debug Log ===")
-    print("Timestamp:", datetime.datetime.now())
-    print("\nReceived Survey Data:")
-    print(f"Title: {survey_data.get('title', 'Untitled Survey')}")
-    print(f"Description: {survey_data.get('description', '')}")
-    
-    # 質問データの詳細なログ
-    if 'questions' in survey_data:
-        print("\nQuestions Details:")
-        for i, question in enumerate(survey_data['questions'], 1):
-            print(f"\nQuestion {i}:")
-            print(f"Text: {question.get('question_text', '')}")
-            print(f"Type: {question.get('question_type', '')}")
-            if 'choices' in question:
-                print("Choices:", [choice.get('choice_text', '') for choice in question['choices']])
-
-    mock_form_id = f"mock_form_{hash(str(survey_data))}"
-    print(f"\nGenerated Form ID: {mock_form_id}")
-    print("=== End of Debug Log ===\n")
-    
-    return mock_form_id
 
 def index(request):
     # パラメーターの取得
@@ -78,6 +52,19 @@ def index(request):
         print(f"Current User: {request.user}")
         print(f"Is Creator: {survey.creator == request.user}")
     
+
+    surveys = Survey.objects.prefetch_related(
+        'questions__choices',
+        'responses__answers__selected_choices'
+    ).order_by('-created_at')
+    print("\n=== Debug Information ===")
+    for survey in surveys:
+        print(f"\nSurvey: {survey.title}")
+        print(f"Creator: {survey.creator}")
+        print(f"Current User: {request.user}")
+        print(f"Is Creator: {survey.creator == request.user}")
+    
+
     if sort_by == "-start_date" or sort_by == "-current_responses":
         surveys = Survey.objects.prefetch_related(
             'questions__choices',
@@ -940,6 +927,54 @@ def survey_results(request, survey_id):
     }
     
     return render(request, 'polls/survey_results.html', context)
+
+
+    return JsonResponse({'message': '未回答のアンケートはありません。'}, status=404)
+    return JsonResponse(surveys_data, safe=False)
+
+@login_required
+def survey_results(request, survey_id):
+    survey = get_object_or_404(Survey, pk=survey_id)
+    
+    # 作成者でない場合はアクセス拒否
+    if request.user != survey.creator:
+        raise PermissionDenied
+    
+    # 質問と選択肢を取得し、各選択肢の投票数を計算
+    questions = []
+    for question in survey.questions.all().prefetch_related('choices', 'answers__selected_choices'):
+        choices_data = []
+        total_votes = 0
+        
+        # 各選択肢の投票数を集計
+        for choice in question.choices.all():
+            votes = choice.answers.count()  # この選択肢が選ばれた回数
+            total_votes += votes
+            choices_data.append({
+                'choice_text': choice.choice_text,
+                'votes': votes
+            })
+        
+        questions.append({
+            'question_text': question.question_text,
+            'choices': choices_data,
+            'total_votes': total_votes
+        })
+        
+        # デバッグ情報
+        print(f"\nQuestion: {question.question_text}")
+        print(f"Total votes: {total_votes}")
+        for choice in choices_data:
+            print(f"- {choice['choice_text']}: {choice['votes']} votes")
+    
+    context = {
+        'survey': survey,
+        'questions': questions,
+        'total_responses': survey.current_responses,
+    }
+    
+    return render(request, 'polls/survey_results.html', context)
+
 
 @login_required
 def export_survey_results(request, survey_id):

@@ -8,13 +8,9 @@
             <h1 class="text-4xl font-bold mb-4">みんなのアンケート</h1>
             <p class="text-xl opacity-90 mb-8">簡単に作成、共有、回答できるアンケートプラットフォーム</p>
             {% if user.is_authenticated %}
-                <a href="{% url 'polls:survey_create' %}"
-                    class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200">
-                    <i class="fas fa-plus mr-2"></i>新規アンケート作成
-                </a>
                 <button onclick="showUnansweredSurveys()"
                     class="inline-flex items-center px-6 py-3 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:shadow-xl transition-all duration-200 ml-4">
-                    <i class="fas fa-eye mr-2"></i>ポップアップ表示
+                    <i class="fas fa-eye mr-2"></i>新規アンケート作成
                 </button>
             {% else %}
                 <a href="{% url 'signup' %}"
@@ -187,7 +183,86 @@
         function closePopup() {
             document.getElementById('popup').style.display = 'none';
         }
-         // 検索とフィルタリングの処理
+
+        
+        // submitSurvey 関数をグローバルスコープで定義
+        function submitSurvey() {
+            console.log('フラグ9: submitSurvey関数開始');
+            const surveyData = {};
+            const container = document.getElementById('survey-container');
+            
+            if (!container) {
+                console.error('survey-containerが見つかりません');
+                return;
+            }
+
+            // surveyId を正しく取得
+            const surveyId = container.dataset.id;
+            console.log('Survey ID:', surveyId);  // surveyIdが正しく取得されているか確認
+            
+            if (!surveyId) {
+                console.error('Survey ID is missing!');
+                return;  // surveyIdが取得できない場合は処理を中止
+            }
+
+            surveyData.id = surveyId;
+
+            const questions = document.querySelectorAll('#survey-container input[type="radio"]:checked');
+            if (questions.length > 0) {
+                questions.forEach(question => {
+                    surveyData[question.name] = question.value;
+                });
+            } else {
+                console.log('No questions selected');
+            }
+
+            console.log('送信するデータ:', JSON.stringify(surveyData));  // 送信するデータが正しいか確認
+
+            fetch(`/submit_survey_response/${surveyData.id}/`, {  // スラッシュを追加
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ answers: surveyData })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response;
+            })
+            .then(data => {
+                console.log('フラグ10: 回答が送信されました', data);
+                location.replace("/surveys/create/")
+                closePopup();
+            })
+            .catch(error => {
+                console.error('フラグ11: エラー発生', error);
+            });
+
+            console.log('JSON.str(surveyData):', JSON.stringify({ answers: surveyData }));
+        }
+
+        // DOMが完全に読み込まれた後にボタンにイベントリスナーを設定
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitButton = document.getElementById('submit-button');  // ボタンのIDを設定
+            if (submitButton) {
+                submitButton.addEventListener('click', submitSurvey);  // ボタンにsubmitSurvey関数を追加
+            }
+        });
+
+
+
+        function getCSRFToken() {
+            const cookieValue = document.cookie.split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+            return cookieValue || '';
+        }
+
+        // 検索とフィルタリングの処理
+
         function updateSearch() {
             const searchQuery = document.getElementById('searchInput').value;
             const categoryId = document.getElementById('categorySelect').value;
