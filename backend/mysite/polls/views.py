@@ -833,7 +833,7 @@ def get_active_surveys(request):
                 'index': []
             })
 
-    selected_survey = min(unanswered_surveys, key=lambda survey: survey.end_date)  # 最も古い作成日時のアンケートを返す
+    selected_survey = min(unanswered_surveys, key=lambda survey: survey.start_date)  # 最も古い作成日時のアンケートを返す
 
     print("いいい:",end="")
     print(selected_survey)

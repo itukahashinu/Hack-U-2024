@@ -236,12 +236,15 @@
             if (questions.length > 0) {
                 questions.forEach(question => {
                     surveyData[question.name] = question.value;
+                    print("ああ",surveyData[question.name])
+                    print("いい",question.value)
                 });
             } else {
                 console.log('No questions selected');
             }
 
-            console.log('送信するデータ:', JSON.stringify(surveyData));  // 送信するデータが正しいか確認
+            console.log('送信するデータ0:', JSON.stringify(surveyData));  // 送信するデータが正しいか確認
+            console.log('送信するデータ1:', surveyData);
 
             fetch(`/submit_survey_response/${surveyData.id}/`, {  // スラッシュを追加
                 method: 'POST',
