@@ -23,9 +23,9 @@
 
     <div id="popup" style="display:none;">
         <div id="popup-content">
-            <span onclick="closePopup()" style="cursor:pointer;">&times; 閉じる</span>
+            <span onclick="closePopup()" class="close-btn" style="cursor:pointer;">&times; 閉じる</span>
             <div id="survey-container" data-id=""></div>
-            <button id="submitSurvey" style="display:none;" onclick="submitSurvey()">回答を送信</button>
+            <button id="submitSurvey" class="submit-btn" style="display:none;" onclick="submitSurvey()">回答を送信</button>
         </div>
     </div>
 
@@ -237,23 +237,29 @@
             surveyData.id = surveyId;
 
             const questions = document.querySelectorAll('#survey-container input[type="radio"]:checked');
+            let res_data = "";
+            let data_set_count = 1;
             if (questions.length > 0) {
                 questions.forEach(question => {
                     surveyData[question.name] = question.value;
+                    res_data += question.name + "=" + question.value;
+                    if (data_set_count < questions.length) {
+                        res_data += "&";
+                    }
+                    data_set_count++;
                 });
             } else {
                 console.log('No questions selected');
             }
 
-            console.log('送信するデータ:', JSON.stringify(surveyData));  // 送信するデータが正しいか確認
 
             fetch(`/submit_survey_response/${surveyData.id}/`, {  // スラッシュを追加
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': getCSRFToken()
                 },
-                body: JSON.stringify({ answers: surveyData })
+                body: res_data
             })
             .then(response => {
                 if (!response.ok) {
@@ -353,6 +359,27 @@
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
+    .close-btn {
+        display: inline-block;
+        padding: 5px 10px;
+        margin-bottom: 20px;
+        margin-left: auto;
+        margin-right: 0;
+        margin-top: 0;
+        background-color: #f44336; /* 赤色 */
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .close-btn:hover {
+        background-color: #d32f2f; /* ホバー時の色 */
+    }
+
     #popup-content {
         position: relative;
     }
@@ -366,6 +393,24 @@
         background: rgba(0, 0, 0, 0.5);
         display: none;
         z-index: 999;
+    }
+
+    .submit-btn {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 10px 0;
+        background-color: #4CAF50; /* 緑色 */
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .submit-btn:hover {
+        background-color: #45a049; /* ホバー時の色 */
     }
     </style>
 {% endblock %}
