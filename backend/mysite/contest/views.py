@@ -10,7 +10,7 @@ def index(request):
     current_month = now.month
     
     # テーマ（後でAPIから取得する予定）
-    current_theme = "テーマ部分はcontest/views.py L13で規定していくよ"
+    current_theme = "無駄から始まるイノベーション!!"
     
     # テーマ一覧（既存のコード）
     themes = Theme.objects.all().prefetch_related(
